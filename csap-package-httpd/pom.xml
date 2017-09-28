@@ -3,8 +3,8 @@
 
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>HttpdWrapper</artifactId>
-	<version>2.4.23.10</version> <!-- add -CMCS for custom installs -->
+	<artifactId>csap-package-httpd</artifactId>
+	<version>2.4.23.10-SNAPSHOT</version> <!-- add -CMCS for custom installs -->
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
