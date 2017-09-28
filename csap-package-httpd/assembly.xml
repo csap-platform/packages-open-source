@@ -10,7 +10,16 @@
 
 
 	<fileSets>
-
+	
+		<fileSet>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>csapApi.sh</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+		
 		<fileSet>
 			<directory>${project.build.directory}/apacheSourceZips</directory>
 			<includes>
