@@ -6,7 +6,7 @@ function displayHeader() {
 	echo	
 	echo ====================================================================
 	echo == 
-	echo == CSAP JDK Package: $*
+	echo "== CSAP JDK 8.$version Package: $*"
 	echo ==
 	echo ====================================================================
 	
@@ -26,6 +26,8 @@ packageDir=$STAGING/warDist/$csapName.secondary
 version="141" ;
 if [ "$jdkVersion" != "" ] ; then
 	version="$jdkVersion"
+else 
+	printIt "version to install is defaulting to: $version. Add jdkVersion environment variable to add jdk 8 suffix"
 fi;
 
 #
