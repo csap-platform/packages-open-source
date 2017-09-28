@@ -98,7 +98,7 @@ function buildAdditionalPackages() {
 	cd ..
 	
 	printIt 3 of 5 apr Extracting apr to `pwd`
-	tar -xvzf ../../apr.zip
+	tar -xvzf ../../apr-1*.zip
 	ls
 	mv apr-1.5.2/ apr
 	
