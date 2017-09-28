@@ -3,12 +3,13 @@
 
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>csap-package-redis</artifactId>
-	<version>3.2.4.3</version>
 	<packaging>pom</packaging>
+	<artifactId>csap-package-java</artifactId>
+	<version>8u141.3-SNAPSHOT</version>
+
 
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>redis package for csap</description>
+	<description>java package for csap</description>
 	<url>https://github.com/csap-platform/csap-core/wiki</url>
 
 	<parent>
@@ -18,21 +19,19 @@
 		<relativePath>../csap-starter/csap-starter-parent</relativePath>
 		<!-- ../csap-starter/csap-starter-parent</relativePath> for use on desktop -->
 	</parent>
+	
 
 	<!-- This will grab all required binaries from maven -->
 
-	<dependencies>
-
-	</dependencies>
+	
 	<build>
 		<defaultGoal>clean package</defaultGoal>
 		<plugins>
-
+		
 			<plugin>
-				<!-- NOTE: We don't need a groupId specification because the group is 
-					org.apache.maven.plugins ...which is assumed by default. -->
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
+					<attach>true</attach>
 					<appendAssemblyId>false</appendAssemblyId>
 					<descriptors>
 						<descriptor>assembly.xml</descriptor>
@@ -48,7 +47,9 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			
 		</plugins>
 	</build>
+
+
 </project>
