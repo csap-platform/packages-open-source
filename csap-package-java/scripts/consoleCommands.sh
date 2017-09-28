@@ -23,7 +23,7 @@ function printIt() {
 
 # CSAP will always autosync all files in packageDir to hosts in service cluster
 packageDir=$STAGING/warDist/$csapName.secondary
-version="141" ;
+version="144" ;
 if [ "$jdkVersion" != "" ] ; then
 	version="$jdkVersion"
 else 
