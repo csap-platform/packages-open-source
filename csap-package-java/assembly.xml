@@ -9,29 +9,30 @@
 	</formats>
 	<fileSets>
 
-			
+
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
 			<directory>scripts</directory>
 			<outputDirectory>/scripts</outputDirectory>
 		</fileSet>
-		
-		
+
+
 		<fileSet>
 			<fileMode>755</fileMode>
 			<directory>bin</directory>
 			<outputDirectory>/bin</outputDirectory>
 		</fileSet>
-		
+
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
 			<includes>
-				<include>pom.xml</include>
+				<include>csapApi.sh</include>
 			</includes>
-			<outputDirectory>/version/${project.version}</outputDirectory>
+			<outputDirectory>/</outputDirectory>
 		</fileSet>
+
 	</fileSets>
 
 </assembly>

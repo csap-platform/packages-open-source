@@ -1,12 +1,14 @@
 #!/bin/bash
 
+
+
 function displayHeader() {
 	echo
 	echo
 	echo	
 	echo ====================================================================
 	echo == 
-	echo "== CSAP JDK 8.$version Package: $*"
+	echo "== CSAP java $majorVersion.$minorVersion Package: $*"
 	echo ==
 	echo ====================================================================
 	
@@ -23,11 +25,18 @@ function printIt() {
 
 # CSAP will always autosync all files in packageDir to hosts in service cluster
 packageDir=$STAGING/warDist/$csapName.secondary
-version="144" ;
-if [ "$jdkVersion" != "" ] ; then
-	version="$jdkVersion"
+majorVersion="jdk8" ;
+if [ "$jdkMajorVersion" != "" ] ; then
+	majorVersion="$jdkMajorVersion"
 else 
-	printIt "version to install is defaulting to: $version. Add jdkVersion environment variable to add jdk 8 suffix"
+	printIt "majorVersion to install is defaulting to: $majorVersion. Add jdkMajorVersion environment variable to jdk9 if desired"
+fi;
+
+minorVersion="144" ;
+if [ "$jdkMinorVersion" != "" ] ; then
+	minorVersion="$jdkMinorVersion"
+else 
+	printIt "minorVersion to install is defaulting to: $minorVersion. Add jdkMinorVersion environment variable to add jdk version suffix"
 fi;
 
 #
@@ -44,7 +53,7 @@ function buildAdditionalPackages() {
 	# if binaries are built - it may or may not be convenient to upload to maven. 	
 	# mvn deploy:deploy-file -DartifactId=apacheTomcat -Dfile=apache-tomcat-8.0.26.zip ^ \
 	#	-DgroupId=com.yourcompany.xxx -Durl=http://maven.yourcompany.com/artifactory/yourartifaoty ^ \
-	#	-DrepositoryId=yourartifaoty -Dpackaging=zip -Dversion=8.0.26
+	#	-DrepositoryId=yourartifaoty -Dpackaging=zip -DminorVersion=8.0.26
 
 }
 
@@ -71,8 +80,14 @@ function getAdditionalBinaryPackages() {
 		cp $localDir/* .
 	else		
 		printIt "using toolsServer: $toolsServer"
-		wget -nv http://$toolsServer/java/jdk-8u$version-linux-x64.tar.gz
-		wget -nv http://$toolsServer/java/jce_policy-8.zip
+		if [ "$majorVersion" == "jdk9" ] ; then 
+			wget -nv http://$toolsServer/java/jdk-9-linux-x64.tar.gz
+			# needs special handling by editing files
+		else
+			wget -nv http://$toolsServer/java/jdk-8u$minorVersion-linux-x64.tar.gz
+			wget -nv http://$toolsServer/java/jce_policy-8.zip
+		fi
+
 	fi;
 	
 }
@@ -118,15 +133,19 @@ function startWrapper() {
 	
 	#
 	# We add serviceName to params so that process state is reflected in UI
+
+	printIt "Creating version folder: $csapWorkingDir/version/$majorVersion-$minorVersion"
+	mkdir -p "$csapWorkingDir/version/$majorVersion-$minorVersion" 
+	touch "$csapWorkingDir/version/$majorVersion-$minorVersion/empty.txt" 
      
     if [ "$CSAP_NO_ROOT" == "yes" ]; then 	
     	# hook for running on non root systems
-    	scripts/rootInstall.sh "$csapWorkingDir" "$version" "$packageDir"
+    	scripts/rootInstall.sh "$csapWorkingDir" "$minorVersion" "$packageDir" "$majorVersion"
 	else
 		rm -rf $STAGING/bin/rootDeploy.sh
 		cat scripts/rootInstall.sh >  $STAGING/bin/rootDeploy.sh
 		chmod 755 /home/ssadmin/staging/bin/rootDeploy.sh
-		sudo /home/ssadmin/staging/bin/rootDeploy.sh "$csapWorkingDir" "$version" "$packageDir"
+		sudo /home/ssadmin/staging/bin/rootDeploy.sh "$csapWorkingDir" "$minorVersion" "$packageDir" "$majorVersion"
 			
 		echo == adding link to: `pwd` from: $csapWorkingDir/JAVA_HOME
 		ln -s /opt/java $csapWorkingDir/JAVA_HOME

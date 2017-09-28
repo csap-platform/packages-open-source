@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>pom</packaging>
 	<artifactId>csap-package-java</artifactId>
-	<version>8u141.3-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 
 	<name>${project.groupId}:${project.artifactId}</name>
