@@ -39,6 +39,7 @@ else
 	printIt "minorVersion to install is defaulting to: $minorVersion. Add jdkMinorVersion environment variable to add jdk version suffix"
 fi;
 
+
 #
 # Use this for any software "build" operations. Typically used for building c/c++ code
 # -  eg. apache httpd, redis
@@ -81,7 +82,7 @@ function getAdditionalBinaryPackages() {
 	else		
 		printIt "using toolsServer: $toolsServer"
 		if [ "$majorVersion" == "jdk9" ] ; then 
-			wget -nv http://$toolsServer/java/jdk-9-linux-x64.tar.gz
+			wget -nv http://$toolsServer/java/jdk-9_linux-x64_bin.tar.gz
 			# needs special handling by editing files
 		else
 			wget -nv http://$toolsServer/java/jdk-8u$minorVersion-linux-x64.tar.gz
