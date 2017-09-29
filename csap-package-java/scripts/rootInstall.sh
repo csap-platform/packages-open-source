@@ -18,7 +18,7 @@ majorVersion="$4"
 
 
 #for testing - blow away existing folder. Do not do this if Agent is using it
-testMode=true;
+testMode=false;
 
 
 
