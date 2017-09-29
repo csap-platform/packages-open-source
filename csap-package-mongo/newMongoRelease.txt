@@ -1,0 +1,9 @@
+
+1) Download the mongodb release from http://www.mongodb.org/downloads
+
+2) Copy the image to the tools server
+
+3) Update the reference in mqInstall.sh
+
+4) Update the reference in activemq.sh
+
