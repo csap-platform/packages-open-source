@@ -19,18 +19,11 @@
 		<!-- ../csap-starter/csap-starter-parent</relativePath> for use on desktop -->
 	</parent>
 
-	<!-- This will grab all required binaries from maven -->
-
-	<dependencies>
-
-	</dependencies>
 	<build>
 		<defaultGoal>clean package</defaultGoal>
 		<plugins>
 
 			<plugin>
-				<!-- NOTE: We don't need a groupId specification because the group is 
-					org.apache.maven.plugins ...which is assumed by default. -->
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<appendAssemblyId>false</appendAssemblyId>

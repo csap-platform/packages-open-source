@@ -7,7 +7,7 @@
 
 
 
-displayHeader() {
+function displayHeader() {
 	echo
 	echo
 	echo	
@@ -19,14 +19,14 @@ displayHeader() {
 	
 }
 
-printIt() {
+function printIt() {
 	echo;echo;
 	echo = 
 	echo = $*
 	echo = 
 }
 
-buildAdditionalPackages() {
+function buildAdditionalPackages() {
 	
 	displayHeader buildAdditionalPackages
 	
@@ -88,12 +88,12 @@ buildAdditionalPackages() {
 }
 
 
-getAdditionalBinaryPackages() {
+function getAdditionalBinaryPackages() {
 	
 	displayHeader "getAdditionalBinaryPackages: no other packages to deploy"
 }
 
-killWrapper() {
+function killWrapper() {
 	displayHeader kill
 	cd $csapWorkingDir
 	stopWrapper
@@ -101,7 +101,7 @@ killWrapper() {
 
 
 
-stopWrapper() {
+function stopWrapper() {
 
 	displayHeader stop
 	cd $csapWorkingDir
@@ -121,7 +121,7 @@ stopWrapper() {
 	
 }
 
-startWrapper() {
+function startWrapper() {
 	displayHeader start 
 	
 	echo == console has set redisMaster to: $redisMaster and redisCredental: MASKED
@@ -205,7 +205,7 @@ startWrapper() {
 }
 
 
-configureLogging() {
+function configureLogging() {
 	
 	if [ -e $csapWorkingDir/logs ] ; then 
 		
