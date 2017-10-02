@@ -162,9 +162,9 @@ function startWrapper() {
 
 		else 
 			
-			printIt "updating configuration files with company name"
-			sed -i -- 's/yourcompany/cisco/g' scripts/bootStrapData/*
-			sed -i -- 's/yourcompany/cisco/g' scripts/dbca.rsp
+			printIt "updating configuration files with companyDomain $companyDomain"
+			sed -i -- "s/yourcompany/$companyDomain/g" scripts/bootStrapData/*
+			sed -i -- "s/yourcompany/$companyDomain/g" scripts/dbca.rsp
 			
 			if [ -e "$serviceConfig/$csapName/ocm.rsp" ]; then
 				printIt "copying: $serviceConfig/$csapName/ocm.rsp to scripts"

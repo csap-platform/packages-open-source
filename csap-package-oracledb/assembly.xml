@@ -9,15 +9,23 @@
 	</formats>
 	<fileSets>
 
-			
+
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
 			<directory>scripts</directory>
 			<outputDirectory>/scripts</outputDirectory>
 		</fileSet>
-		
-		
+
+		<fileSet>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>pom.xml</include>
+			</includes>
+			<outputDirectory>/version/${project.version}</outputDirectory>
+		</fileSet>
+
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
@@ -26,9 +34,9 @@
 			</includes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
-		
-		
-		
+
+
+
 	</fileSets>
 
 </assembly>

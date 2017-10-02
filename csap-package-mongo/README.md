@@ -30,3 +30,4 @@ Set the following  environment variables to select jdk
 ```
 
 Note: upload mongo binary to your [ tools server](https://github.com/csap-platform/csap-core/tree/master/csap-core-install)
+
