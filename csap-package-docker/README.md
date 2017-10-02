@@ -17,6 +17,8 @@ References: https://docs.docker.com/
 - by default, the docker package in the yum repository will be installed (currently 1.12)
 	- if the $csapVersion string contains "LATEST" docker-latest package will be installed (currently 1.13)
 
+- csap-core-service defaults to using "docker" as the service locator. when creating - use docker as the service name
+
 - creates docker storage using specified env variable.
 	- docker storage can grow over time in development environments. 
 	docker package includes a cleanup script to prune unused storage volumes, images, etc 
@@ -42,5 +44,3 @@ References: https://docs.docker.com/
 	}
 	
 ```
-
-Note: upload tomcat releases to your [ tools server](https://github.com/csap-platform/csap-core/tree/master/csap-core-install)
