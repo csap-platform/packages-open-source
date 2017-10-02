@@ -9,7 +9,7 @@ References: https://redis.io/documentation
 
 ## Configuration
 
-Set the following  environment variables to select jdk
+Set the following  environment variables to configure redis
 ```
 {
 	"redisMaster": "$serviceRef:redis",

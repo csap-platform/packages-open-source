@@ -11,29 +11,23 @@
 
 	<fileSets>
 		
-		<fileSet>
-			<directory>${project.basedir}</directory>
-			<includes>
-				<include>*.zip</include>
-			</includes>
-			<outputDirectory>/</outputDirectory>
-		</fileSet>
-
-		<fileSet>
-			<fileMode>755</fileMode>
-			<lineEnding>unix</lineEnding>
-			<directory>conf</directory>
-			<outputDirectory>/conf</outputDirectory>
-		</fileSet>
-
+		
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
 			<directory>scripts</directory>
 			<outputDirectory>/scripts</outputDirectory>
 		</fileSet>
+			
+			
+		<fileSet>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<directory>custom</directory>
+			<outputDirectory>/custom</outputDirectory>
+		</fileSet>
 		
-		
+				
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
@@ -43,7 +37,6 @@
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		
-		
 		<fileSet>
 			<fileMode>755</fileMode>
 			<lineEnding>unix</lineEnding>
@@ -52,6 +45,8 @@
 			</includes>
 			<outputDirectory>/version/${project.version}</outputDirectory>
 		</fileSet>
+		
+		
 	</fileSets>
 
 </assembly>
