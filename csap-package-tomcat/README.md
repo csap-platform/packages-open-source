@@ -14,6 +14,7 @@ References: http://tomcat.apache.org/
 
 ## Configuration
 
+- by default, tomcat package is located using service name **tomcat**
 - tomcat releases are extracted to CSAP Runtime/appsTomcat
 
 
