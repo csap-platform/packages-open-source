@@ -1,0 +1,88 @@
+CREATE TABLE JOB_SCHEDULE
+(
+  SCHEDULE_OBJID          NUMBER                NOT NULL,
+  JNDI_NAME               VARCHAR2(255 BYTE)    NOT NULL,
+  MESSAGE_SELECTOR_TEXT   VARCHAR2(255 BYTE)    NOT NULL,
+  EVENT_MESSAGE_TEXT      VARCHAR2(255 BYTE)    NOT NULL,
+  EVENT_DESCRIPTION       VARCHAR2(255 BYTE),
+  NEXT_RUN_INTERVAL_TEXT  VARCHAR2(255 BYTE)    NOT NULL,
+  LAST_INVOKE_TIME        DATE,
+  NEXT_RUN_TIME           DATE,
+  CREATE_DATE             DATE                  NOT NULL,
+  CREATE_ORA_LOGIN        VARCHAR2(30 BYTE)     NOT NULL,
+  CREATE_USER_ID          VARCHAR2(30 BYTE),
+  UPDATE_DATE             DATE,
+  UPDATE_ORA_LOGIN        VARCHAR2(30 BYTE),
+  UPDATE_USER_ID          VARCHAR2(30 BYTE),
+  STATUS_CD               VARCHAR2(10 BYTE)     DEFAULT 'ACTIVE'              NOT NULL
+);
+
+
+COMMENT ON COLUMN JOB_SCHEDULE.SCHEDULE_OBJID IS 'Sequence Generated Primary Key';
+
+COMMENT ON COLUMN JOB_SCHEDULE.JNDI_NAME IS 'Name of the queue on which the message should be placed';
+
+COMMENT ON COLUMN JOB_SCHEDULE.EVENT_DESCRIPTION IS 'Textural description of the event for reference';
+
+COMMENT ON COLUMN JOB_SCHEDULE.NEXT_RUN_INTERVAL_TEXT IS 'Oracle SQL Date arithmetic for calculating the next time the event should be executed (presumably evaluated and used each time the event is run)';
+
+COMMENT ON COLUMN JOB_SCHEDULE.LAST_INVOKE_TIME IS 'The last date on which this event was invoked';
+
+COMMENT ON COLUMN JOB_SCHEDULE.NEXT_RUN_TIME IS 'The next date/time at which this event should be run';
+
+COMMENT ON COLUMN JOB_SCHEDULE.CREATE_DATE IS 'The timestamp for the insertion of a given record';
+
+COMMENT ON COLUMN JOB_SCHEDULE.CREATE_ORA_LOGIN IS 'Oracle userid of the schema that created this record';
+
+COMMENT ON COLUMN JOB_SCHEDULE.CREATE_USER_ID IS 'The  User Id of the user that inserted the record';
+
+COMMENT ON COLUMN JOB_SCHEDULE.UPDATE_DATE IS 'The timestamp for the most recent update of a given record';
+
+COMMENT ON COLUMN JOB_SCHEDULE.UPDATE_ORA_LOGIN IS 'The name of the Oracle schema that most recently updated the record';
+
+COMMENT ON COLUMN JOB_SCHEDULE.UPDATE_USER_ID IS 'The  User Id of the user that most recently updated the record';
+
+
+CREATE UNIQUE INDEX JOB_SCHEDULE_PK ON JOB_SCHEDULE
+(SCHEDULE_OBJID);
+
+CREATE SEQUENCE JOB_SCHEDULE_SEQ
+  START WITH 1
+  MINVALUE 1
+  CACHE 1000
+  NOCYCLE;
+  
+
+CREATE OR REPLACE TRIGGER "JOB_SCHEDULE_TIU" 
+BEFORE INSERT OR UPDATE ON JOB_SCHEDULE REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+DECLARE
+	tmpVar NUMBER;
+BEGIN
+	IF INSERTING THEN
+		IF :NEW.SCHEDULE_OBJID is null THEN
+			SELECT JOB_SCHEDULE_SEQ.NEXTVAL INTO tmpVar FROM DUAL;
+			:NEW.SCHEDULE_OBJID := tmpVar;
+		END IF;
+		:NEW.CREATE_DATE      := SYSDATE;
+		:NEW.CREATE_ORA_LOGIN := USER;
+	ELSE
+		:NEW.UPDATE_DATE      := SYSDATE;
+		:NEW.UPDATE_ORA_LOGIN := USER;
+	END IF;
+EXCEPTION
+	WHEN OTHERS THEN
+		RAISE;
+END;
+/
+
+
+ALTER TABLE JOB_SCHEDULE ADD (
+  CONSTRAINT JOB_SCHEDULE_C1
+ CHECK (STATUS_CD in ('ACTIVE','INACTIVE')),
+  CONSTRAINT JOB_SCHEDULE_PK
+ PRIMARY KEY
+ (SCHEDULE_OBJID));
+
+
+

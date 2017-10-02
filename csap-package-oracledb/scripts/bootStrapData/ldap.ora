@@ -1,0 +1,6 @@
+# ......................................................................
+# ldap.ora
+# ......................................................................
+DEFAULT_ADMIN_CONTEXT = "dc=yourcompany,dc=com"
+DIRECTORY_SERVERS= (tns-prod:5000 )
+DIRECTORY_SERVER_TYPE = OID
