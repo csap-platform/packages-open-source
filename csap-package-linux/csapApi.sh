@@ -81,15 +81,63 @@ function startWrapper() {
 	displayHeader START
 
 
+	createVersion ;
+	
+	createLogs ;
+	
+	deployScripts ;
+	
+	updateSudo ;
+		
+	switchToCsapPackages ;
+		
+
+}
+
+function switchToCsapPackages() {
+	
+	newPackageFolder="$STAGING/csap-packages" ;
+	
+	if [ ! -e "$newPackageFolder" ] ; then 
+		
+		printIt "Renaming $STAGING/warDist to $newPackageFolder "
+		\mv -v $STAGING/warDist $newPackageFolder
+		
+		ln -s $newPackageFolder $STAGING/warDist
+		
+	else
+		# in future release
+		# \rm -f $STAGING/warDist
+		printLine "Found: $newPackageFolder , already migrated"	
+	fi ;
+}
+
+function updateSudo() {
+	# update hosts to latest set of sudo commands
+	if  [ "$CSAP_NO_ROOT" != "yes" ]; then
+		
+		sudoScript="$csapWorkingDir/scripts/configureSudo.sh" ;
+		printIt "Updating sudo using $sudoScript"
+			
+		# rootDeploy is configured by the host installer
+		\rm -rf $STAGING/bin/rootDeploy.sh ;
+		cat $sudoScript > $STAGING/bin/rootDeploy.sh ;
+		chmod 755 $STAGING/bin/rootDeploy.sh ;
+		
+		sudo $STAGING/bin/rootDeploy.sh 
+		
+	fi ;	
+}
+
+function createVersion() {
+	
+	packageVersion=`ls $csapWorkingDir/version | head -n 1`
+	
+	printIt "Appending linux version to package version"
 	
 	linuxVersion=`uname -r`
 	linuxShortVersion=${linuxVersion:0:8}
 	
-	printIt "creating logs in $csapLogDir, and linking /var/log/messages"
-	mkdir -p $csapLogDir
-	cd $csapLogDir
-	ln -s /var/log/messages var-log-messages
-		
 	cat /etc/redhat-release
 		
 	if [ -e /etc/os-release ] ; then
@@ -103,11 +151,64 @@ function startWrapper() {
 		myVersion="no-etc-os-release"
 	fi;
 	
-	printIt "Creating version folder: $csapWorkingDir/version/$myVersion"
-	mkdir -p "$csapWorkingDir/version/$myVersion" 
-	touch "$csapWorkingDir/version/$myVersion/empty.txt"
+	myVersion="$myVersion-$packageVersion"
 	
-    
+	printIt "Renaming version folder: $csapWorkingDir/version/$packageVersion to $myVersion"
+	
+	\mv -v "$csapWorkingDir/version/$packageVersion" "$csapWorkingDir/version/$myVersion" 
 
 	
 }
+
+
+function createLogs() {
+
+	printIt "creating logs in $csapLogDir, and linking /var/log/messages"
+	mkdir -p $csapLogDir
+	cd $csapLogDir
+	ln -s /var/log/messages var-log-messages
+
+	cd $csapWorkingDir
+		
+}
+
+function deployScripts() {
+	
+	currentBin="$STAGING/bin"
+	previousBin="$currentBin.old"
+
+	if [ -e $previousBin ] ; then
+		
+		printIt "Removing previous backup: $previousBin"
+		\rm -rf $previousBin
+			
+	fi
+	
+	printIt "moving $currentBin $previousBin"
+	mv $currentBin $previousBin
+	
+	
+	
+	printIt "copying $csapWorkingDir/staging-bin $currentBin"
+	\cp -rp $csapWorkingDir/staging-bin $currentBin
+
+
+	printIt "adding legacy links for previous releases"
+	
+	cd $currentBin
+	ln -s csap-start.sh startInstance.sh
+	ln -s csap-kill.sh killInstance.sh
+	ln -s csap-deploy.sh rebuildAndDeploySvc.sh
+	ln -s admin-restart.sh restartAdmin.sh 
+	ln -s admin-kill-all.sh kills.sh
+
+	cd $csapWorkingDir
+	
+}
+
+
+
+
+
+
+

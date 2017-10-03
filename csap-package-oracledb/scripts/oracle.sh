@@ -12,7 +12,6 @@
 # Source function library.
 . /etc/init.d/functions
 
-[ -f /home/ssadmin/staging/bin/startInstance.sh ] || exit 0
 
 RETVAL=0
 
@@ -20,7 +19,6 @@ umask 077
 
 start() {
        echo -n $"Starting Oracle: "
-       # daemon --user=oracle /home/ssadmin/staging/bin/startInstance.sh -i CsAgent_8011
        echo startup > /tmp/start.sql
        echo exit >> /tmp/start.sql
        chmod 755 /tmp/start.sql
@@ -31,7 +29,6 @@ start() {
 }
 stop() {
        echo -n $"Shutting  Oracle: "
-       # daemon --user=oracle /home/ssadmin/staging/bin/killInstance.sh -i CsAgent_8011
        echo shutdown immediate > /tmp/shutdown.sql
        echo exit >> /tmp/shutdown.sql
        chmod 755 /tmp/shutdown.sql
