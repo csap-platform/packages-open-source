@@ -43,6 +43,19 @@
 		</fileSet>
 
 
+		
+
 	</fileSets>
+
+	<!-- legacy support -->
+	<files>
+		<file>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<source>csapApi.sh</source>
+			<destName>consoleCommands.sh</destName>
+			<outputDirectory>scripts</outputDirectory>
+		</file>
+	</files>
 
 </assembly>

@@ -146,12 +146,16 @@ function createVersion() {
 		source /etc/os-release
 		myVersion="$ID-$VERSION_ID"
 		
-		myVersion=$(echo $myVersion | tr -d ' ') ;
+	elif [ -e /etc/redhat-release ] ; then 
+		myVersion=`cat /etc/redhat-release | awk '{ print "rh-"$7}'`
+			
 	else
 		myVersion="no-etc-os-release"
+		
 	fi;
 	
 	myVersion="$myVersion-$packageVersion"
+	myVersion=$(echo $myVersion | tr -d ' ') ;
 	
 	printIt "Renaming version folder: $csapWorkingDir/version/$packageVersion to $myVersion"
 	
