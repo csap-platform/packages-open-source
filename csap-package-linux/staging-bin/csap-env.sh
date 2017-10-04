@@ -83,7 +83,15 @@ cookieName="" ;
 secondary="" ;
 serviceContext="notSpecified"
 platformVersion="0" ;
+
+# default folders
 csapPackageFolder="$STAGING/csap-packages" ;
+
+csapSavedFolder="$STAGING/saved" ;
+if [ ! -e "$csapSavedFolder" ] ; then
+	printIt "Creating backup: $previousBin"
+	\mkdir -p $csapSavedFolder
+fi ;
 
 osProcessPriority="0" ;
 

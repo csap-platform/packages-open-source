@@ -174,8 +174,19 @@ function createLogs() {
 
 function deployScripts() {
 	
+	if [ "$csapSavedFolder" == "" ] ; then
+		csapSavedFolder="$STAGING/saved" ;
+		printIt "setting csapSavedFolder: $csapSavedFolder, and creating folder" ;
+		\mkdir -p $csapSavedFolder
+	fi;
+	
+	if [ -e "$STAGING/scripts" ] ; then
+		printIt "moving $STAGING/scripts $csapSavedFolder/scripts"
+		\mv -v $STAGING/scripts $csapSavedFolder/scripts
+	fi ;
+	
 	currentBin="$STAGING/bin"
-	previousBin="$currentBin.old"
+	previousBin="$csapSavedFolder/bin.old"
 
 	if [ -e $previousBin ] ; then
 		
@@ -185,7 +196,7 @@ function deployScripts() {
 	fi
 	
 	printIt "moving $currentBin $previousBin"
-	mv $currentBin $previousBin
+	\mv -v $currentBin $previousBin
 	
 	
 	
