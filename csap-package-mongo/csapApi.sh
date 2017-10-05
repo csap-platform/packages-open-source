@@ -20,7 +20,6 @@ function printIt() {
 	echo = 
 }
 
-packageDir=$STAGING/warDist/$csapName.secondary
 version="77" ;
 mongoConf=$csapWorkingDir/conf
 
@@ -34,12 +33,12 @@ function getAdditionalBinaryPackages() {
 	
 	displayHeader getAdditionalBinaryPackages $mongoVersion.tgz
 	
-	printIt removing $packageDir
-	\rm -rf $packageDir
+	printIt removing dependencies $csapPackageDependencies
+	\rm -rf $csapPackageDependencies
 	
-	printIt Getting mongo binaries from $toolsServer and storing in $packageDir
-	mkdir -p $packageDir
-	cd $packageDir
+	printIt Getting mongo binaries from $toolsServer and storing in dependency folder: $csapPackageDependencies
+	mkdir -p $csapPackageDependencies
+	cd $csapPackageDependencies
 	
 	localDir="/media/sf_workspace/packages"
 	if [ -e $localDir ] ; then 
@@ -121,10 +120,10 @@ function startWrapper() {
 function installMongo() {
 	
 	
-	printIt "Installing mongodb to $csapWorkingDir"
+	printIt "Installing to $csapWorkingDir using $csapPackageDependencies/$mongoVersion*.tgz"
 	
 	cd $csapWorkingDir
-	tar -xzf $packageDir/$mongoVersion*.tgz
+	tar -xzf $csapPackageDependencies/$mongoVersion*.tgz
 	
 	printIt "Moving extracted contents to  $csapWorkingDir/mongodatabase"
 	rm -rf mongodatabase
