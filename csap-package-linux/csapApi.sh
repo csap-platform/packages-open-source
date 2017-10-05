@@ -25,12 +25,13 @@ function printIt() {
 #
 #  legacy installs will not have new variables.
 #
-if [ "$csapSavedFolder" == "" ] ; then
+if [ "$csapPackageDependencies" == "" ] ; then
 	
 	csapSavedFolder="$STAGING/saved" ;
 	csapPackageFolder="$STAGING/csap-packages"
+	csapPackageDependencies="$csapPackageFolder/$csapName.secondary" ;
 	
-	printIt "setting csapSavedFolder: $csapSavedFolder, and csapPackageFolder: $csapPackageFolder" ;
+	printIt "LEGACY INSTALL: setting csapSavedFolder: $csapSavedFolder, csapPackageFolder: $csapPackageFolder, csapPackageDependencies: $csapPackageDependencies" ;
 	\mkdir -p $csapSavedFolder
 	
 fi;
@@ -41,17 +42,16 @@ function buildAdditionalPackages() {
 
 }
 
-packageDir=$csapPackageFolder/$csapName.secondary
 function getAdditionalBinaryPackages() {
 	
 	displayHeader "Getting maven"
 	
-	printIt removing $packageDir
-	\rm -rf $packageDir
+	printIt removing $csapPackageDependencies
+	\rm -rf $csapPackageDependencies
 	
 	printIt Getting maven binary
-	mkdir -p $packageDir
-	cd $packageDir
+	mkdir -p $csapPackageDependencies
+	cd $csapPackageDependencies
 	wget -nv http://$toolsServer/csap/apache-maven-3.3.3-bin.zip
 	
 }
@@ -82,7 +82,7 @@ function stopWrapper() {
 
 
 #
-# startWrapper should always check if $csapWorkingDir exists, if not then create it using $packageDir
+# startWrapper should always check if $csapWorkingDir exists, if not then create it using $csapPackageDependencies
 # 
 #
 function startWrapper() {
@@ -109,8 +109,8 @@ function install-maven() {
 	
 	printIt "Installing maven"
 	
-	cd $STAGING/apache-maven*
-	unzip -qq -o $packageDir/apache*.zip -d $STAGING
+	\rm -rf $STAGING/apache-maven*
+	unzip -qq -o $csapPackageDependencies/apache*.zip -d $STAGING
 
 
 }

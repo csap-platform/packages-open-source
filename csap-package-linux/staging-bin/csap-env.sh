@@ -86,6 +86,7 @@ platformVersion="0" ;
 
 # default folders
 csapPackageFolder="$STAGING/csap-packages" ;
+csapPackageDependencies="$csapPackageFolder/$csapName.secondary" ;
 
 csapSavedFolder="$STAGING/saved" ;
 if [ ! -e "$csapSavedFolder" ] ; then
