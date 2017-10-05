@@ -22,9 +22,6 @@ function printIt() {
 	echo = 
 }
 
-
-# CSAP will always autosync all files in packageDir to hosts in service cluster
-packageDir=$STAGING/warDist/$csapName.secondary
 majorVersion="jdk8" ;
 if [ "$jdkMajorVersion" != "" ] ; then
 	majorVersion="$jdkMajorVersion"
@@ -48,13 +45,8 @@ fi;
 #
 function buildAdditionalPackages() {
 	
-	displayHeader buildAdditionalPackages: no additional packages to build
+	displayHeader "No Source Packages"
 
-	# most packages are most often managed via a staging host eg. http://csaptools.yourcompany.com/ is used for java
-	# if binaries are built - it may or may not be convenient to upload to maven. 	
-	# mvn deploy:deploy-file -DartifactId=apacheTomcat -Dfile=apache-tomcat-8.0.26.zip ^ \
-	#	-DgroupId=com.yourcompany.xxx -Durl=http://maven.yourcompany.com/artifactory/yourartifaoty ^ \
-	#	-DrepositoryId=yourartifaoty -Dpackaging=zip -DminorVersion=8.0.26
 
 }
 
@@ -62,28 +54,29 @@ function buildAdditionalPackages() {
 # Use this for getting binary packages - either prebuilt by distributions (tomcat, mongodb, cassandra,etc.)
 #   or built using buildAdditionalPackages() above
 #   Note that CSAP deploy will invoke this on the primary host selected during deployment, and then automatically
-#   - synchronize the packageDir to all the other hosts (via local network copy) for much faster distribution
+#   - synchronize the csapPackageDependencies to all the other hosts (via local network copy) for much faster distribution
 #
 function getAdditionalBinaryPackages() {
 	
-	displayHeader getAdditionalBinaryPackages
+	displayHeader "Getting JDKs"
 	
-	printIt removing $packageDir
-	\rm -rf $packageDir
+	printIt "removing $csapPackageDependencies"
+	\rm -rf $csapPackageDependencies
 	
-	printIt Getting Java binaries
-	mkdir -p $packageDir
-	cd $packageDir
+	mkdir -p $csapPackageDependencies
+	cd $csapPackageDependencies
 	
+	# support local vms
 	localDir="/media/sf_workspace/packages"
 	if [ -e $localDir ] ; then 
 		printIt using local copies from $localDir
 		cp $localDir/* .
 	else		
-		printIt "using toolsServer: $toolsServer"
+		
+		printIt "Downloading from toolsServer: http://$toolsServer/java"
 		if [ "$majorVersion" == "jdk9" ] ; then 
 			wget -nv http://$toolsServer/java/jdk-9_linux-x64_bin.tar.gz
-			# needs special handling by editing files
+
 		else
 			wget -nv http://$toolsServer/java/jdk-8u$minorVersion-linux-x64.tar.gz
 			wget -nv http://$toolsServer/java/jce_policy-8.zip
@@ -121,7 +114,7 @@ function stopWrapper() {
 
 
 #
-# startWrapper should always check if $csapWorkingDir exists, if not then create it using $packageDir
+# startWrapper should always check if $csapWorkingDir exists, if not then create it using $csapPackageDependencies
 # 
 #
 function startWrapper() {
@@ -129,7 +122,7 @@ function startWrapper() {
 	
 
 	echo =====
-	echo == Info: Deploying $csapName using $packageDir, current dir: `pwd`
+	echo == Info: Deploying $csapName using $csapPackageDependencies, current dir: `pwd`
 	echo ==== 
 	
 	#
@@ -141,12 +134,12 @@ function startWrapper() {
      
     if [ "$CSAP_NO_ROOT" == "yes" ]; then 	
     	# hook for running on non root systems
-    	scripts/rootInstall.sh "$csapWorkingDir" "$minorVersion" "$packageDir" "$majorVersion"
+    	scripts/rootInstall.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
 	else
 		rm -rf $STAGING/bin/rootDeploy.sh
 		cat scripts/rootInstall.sh >  $STAGING/bin/rootDeploy.sh
 		chmod 755 /home/ssadmin/staging/bin/rootDeploy.sh
-		sudo /home/ssadmin/staging/bin/rootDeploy.sh "$csapWorkingDir" "$minorVersion" "$packageDir" "$majorVersion"
+		sudo /home/ssadmin/staging/bin/rootDeploy.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
 			
 		echo == adding link to: `pwd` from: $csapWorkingDir/JAVA_HOME
 		ln -s /opt/java $csapWorkingDir/JAVA_HOME
