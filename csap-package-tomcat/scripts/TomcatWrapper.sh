@@ -287,12 +287,12 @@ function getWarAndProperties() {
 	# Deploy last deployed instance
 	#if [ $isSkip == "0"  ] ; then
 			
-	printTom Using $STAGING/warDist/$serviceName.war
+	printTom Using $csapPackageFolder/$serviceName.war
 	
-	\cp -p $STAGING/warDist/$serviceName.war $CATALINA_BASE
+	\cp -p $csapPackageFolder/$serviceName.war $CATALINA_BASE
 	
-	\cp -p $STAGING/warDist/$serviceName.war.txt $CATALINA_BASE/release.txt
-	\cp -p $STAGING/warDist/$serviceName.war.txt $CATALINA_BASE
+	\cp -p $csapPackageFolder/$serviceName.war.txt $CATALINA_BASE/release.txt
+	\cp -p $csapPackageFolder/$serviceName.war.txt $CATALINA_BASE
 	
 	if [ -e "$serviceConfig/$serviceName/resources" ]; then
 		
@@ -342,9 +342,9 @@ function doFullServiceSetup() {
 	# backwards compatible
 
 	extractDir="$warDir/$serviceContext"
-	echo checking for $STAGING/warDist/$serviceName.war.txt
-	if [ -e $STAGING/warDist/$serviceName.war.txt ] && [[  $JAVA_OPTS != *noTomcatVersion*  ]] ; then
-		extractDir="$warDir/$serviceContext""##"`grep -o '<version>.*<' $STAGING/warDist/$serviceName.war.txt  | cut -d ">" -f 2 | cut -d "<" -f 1`
+	echo checking for $csapPackageFolder/$serviceName.war.txt
+	if [ -e $csapPackageFolder/$serviceName.war.txt ] && [[  $JAVA_OPTS != *noTomcatVersion*  ]] ; then
+		extractDir="$warDir/$serviceContext""##"`grep -o '<version>.*<' $csapPackageFolder/$serviceName.war.txt  | cut -d ">" -f 2 | cut -d "<" -f 1`
 	fi;
 	
 	echo ==
@@ -502,12 +502,12 @@ function tomcatStart() {
 	chmod 700 $jmxPassFile
 	echo "admin readwrite" >| $jmxAccessFile
 	
-	if [ -e  $STAGING/warDist/$serviceName.secondary ] ; then
+	if [ -e  $csapPackageDependencies ] ; then
 		
-		printTom Found Secondary deployment files: $STAGING/warDist/$serviceName.secondary, deploying
+		printTom Found Secondary deployment files: $csapPackageDependencies, deploying
 		
 			
-		for file in $STAGING/warDist/$serviceName.secondary/*; do
+		for file in $csapPackageDependencies/*; do
 			plainFile=`basename $file`
 			#tomcatName=${plainFile/-/##}
 			#echo "$file" is being copied to $CATALINA_BASE/webapps/$tomcatName
@@ -538,7 +538,7 @@ function tomcatStart() {
 					\cp -vfr $extractDir/WEB-INF/classes/$lifecycle/* $extractDir/WEB-INF/classes
 				fi
 		done
-	# \cp -p $STAGING/warDist/$serviceName.secondary/*.war $CATALINA_BASE/webapps
+	# \cp -p $csapPackageDependencies/*.war $CATALINA_BASE/webapps
 	fi ;
 	
 	echo updated tomcat

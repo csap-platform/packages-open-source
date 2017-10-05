@@ -21,8 +21,6 @@ function printIt() {
 }
 
 
-packageDir=$STAGING/warDist/$csapName.secondary
-
 function buildAdditionalPackages() {
 	
 	displayHeader buildAdditionalPackages: no additional packages to build
@@ -34,41 +32,41 @@ function getAdditionalBinaryPackages() {
 	
 	displayHeader getAdditionalBinaryPackages from $toolsServer
 	
-	printIt removing $packageDir
-	\rm -rf $packageDir
+	printIt removing $csapPackageDependencies
+	\rm -rf $csapPackageDependencies
 	
 	printIt Getting tomcat 7
-	mkdir -p $packageDir/tom7
-	cd $packageDir/tom7
+	mkdir -p $csapPackageDependencies/tom7
+	cd $csapPackageDependencies/tom7
 	wget -nv http://$toolsServer/tomcat/tom7/apache-tomcat-7.0.68.tar.gz
 	wget -nv http://$toolsServer/tomcat/tom7/catalina-jmx-remote.jar
 	
 	printIt Getting tomcat 8
-	mkdir -p $packageDir/tom8
-	cd $packageDir/tom8
+	mkdir -p $csapPackageDependencies/tom8
+	cd $csapPackageDependencies/tom8
 	wget -nv http://$toolsServer/tomcat/tom8/apache-tomcat-8.0.35.tar.gz
 	wget -nv http://$toolsServer/tomcat/tom8/catalina-jmx-remote.jar
 	
 	printIt Getting tomcat 8.5
-	mkdir -p $packageDir/tom8.5
-	cd $packageDir/tom8.5
+	mkdir -p $csapPackageDependencies/tom8.5
+	cd $csapPackageDependencies/tom8.5
 	wget -nv http://$toolsServer/tomcat/tom8.5/apache-tomcat-8.5.16.tar.gz
 	wget -nv http://$toolsServer/tomcat/tom8.5/catalina-jmx-remote.jar
 	
 	printIt Getting tomcat 9
-	mkdir $packageDir/tom9
-	cd $packageDir/tom9
+	mkdir $csapPackageDependencies/tom9
+	cd $csapPackageDependencies/tom9
 	wget -nv http://$toolsServer/tomcat/tom9/apache-tomcat-9.0.0.M22.tar.gz
 	wget -nv http://$toolsServer/tomcat/tom9/catalina-jmx-remote.jar
 	
 	printIt Getting cssp1
-	mkdir $packageDir/cssp1
-	cd $packageDir/cssp1
+	mkdir $csapPackageDependencies/cssp1
+	cd $csapPackageDependencies/cssp1
 	wget -nv http://$toolsServer/tomcat/eol/cssp-1.0.25.zip
 	
 	printIt Getting cssp3
-	mkdir $packageDir/cssp3
-	cd $packageDir/cssp3
+	mkdir $csapPackageDependencies/cssp3
+	cd $csapPackageDependencies/cssp3
 	wget -nv http://$toolsServer/tomcat/eol/cssp3-3.1.4.zip
 	
 		
@@ -127,31 +125,31 @@ function startWrapper() {
 		
 		printIt Extracting tom7 into $tomcatExtract 
 		# set -x
-		tar $tarParams -xzf $packageDir/tom7/*.gz
+		tar $tarParams -xzf $csapPackageDependencies/tom7/*.gz
 		addTomcatCustomizations tom7
 		#set +x
 		
 		printIt Extracting tom8 into $tomcatExtract 
-		tar $tarParams -xzf $packageDir/tom8/*.gz
+		tar $tarParams -xzf $csapPackageDependencies/tom8/*.gz
 		addTomcatCustomizations tom8
 		
 		printIt Extracting tom8.5 into $tomcatExtract 
-		tar $tarParams -xzf $packageDir/tom8.5/*.gz
+		tar $tarParams -xzf $csapPackageDependencies/tom8.5/*.gz
 		addTomcatCustomizations tom8.5
 		
 		
 		printIt Extracting tom9 into $tomcatExtract 
-		tar $tarParams -xzf $packageDir/tom9/*.gz
+		tar $tarParams -xzf $csapPackageDependencies/tom9/*.gz
 		addTomcatCustomizations tom9
 		
 		
 		printIt Extracting cssp1 into $tomcatExtract 
-		unzip -uq $packageDir/cssp1/*.zip
+		unzip -uq $csapPackageDependencies/cssp1/*.zip
 		addTomcatCustomizations cssp1
 		
 		
 		printIt Extracting cssp3 into $tomcatExtract 
-		unzip -uq $packageDir/cssp3/*.zip
+		unzip -uq $csapPackageDependencies/cssp3/*.zip
 		addTomcatCustomizations cssp3
 	
 		
@@ -176,31 +174,31 @@ function addTomcatCustomizations() {
 		customDest="unknownDest/lib"
 		case $runtime in
 			tom7 ) 
-				customSource="$packageDir/tom7"
+				customSource="$csapPackageDependencies/tom7"
 				customDest=`ls -td $tomcatExtract/apache-tomcat-7* | head -1`
 				;;
 			cssp1 ) 
-				customSource="$packageDir/tom7"
+				customSource="$csapPackageDependencies/tom7"
 				customDest=`ls -td $tomcatExtract/cssp-1* | head -1`
 				;;
 				
 			tom8 ) 
-				customSource="$packageDir/tom8"
+				customSource="$csapPackageDependencies/tom8"
 				customDest=`ls -td $tomcatExtract/apache-tomcat-8.0* | head -1`
 				;;
 				
 			tom8.5 ) 
-				customSource="$packageDir/tom8.5"
+				customSource="$csapPackageDependencies/tom8.5"
 				customDest=`ls -td $tomcatExtract/apache-tomcat-8.5* | head -1`
 				;;
 				
 			cssp3 ) 
-				customSource="$packageDir/tom8"
+				customSource="$csapPackageDependencies/tom8"
 				customDest=`ls -td $tomcatExtract/cssp3-* | head -1`
 				;;
 				
 			tom9 ) 
-				customSource="$packageDir/tom9"
+				customSource="$csapPackageDependencies/tom9"
 				customDest=`ls -td $tomcatExtract/apache-tomcat-9* | head -1`
 				;;
 				
@@ -215,8 +213,10 @@ function addTomcatCustomizations() {
 		
 		addTomcatOracle
 		
-		printIt Info Updating $STAGING/bin/log4j.properties $customDest/lib
-		\cp $cpParams  $STAGING/bin/log4j.properties $customDest/lib
+		if [ -e "$serviceConfig/$csapName/$runtime/lib" ]; then
+			printIt "Found custom: $STAGING/bin/log4j.properties $customDest/lib"
+			\cp $cpParams  $serviceConfig/$csapName/$runtime/lib/* $customDest/lib
+		fi;
 		
 		addTomcatInstanceCustom
 	fi ;
@@ -224,9 +224,20 @@ function addTomcatCustomizations() {
 }
 
 function addTomcatInstanceCustom() {
-	printIt Adding Tomcat Instance overrides to ensure security from $csapWorkingDir/custom/$runtime to  $customDest/custom
-	mkdir $customDest/custom
-	cp -r $cpParams $csapWorkingDir/custom/$runtime/* $customDest
+	
+	
+	if [ -e $csapWorkingDir/custom/$runtime ] ; then 
+		
+		printIt "Adding Tomcat Instance overrides to ensure security from $csapWorkingDir/custom/$runtime to  $customDest/custom"
+		
+		if [ ! -e $customDest/custom ] ; then
+			mkdir -p $customDest/custom ;
+		fi ;
+		
+		cp -r $cpParams $csapWorkingDir/custom/$runtime/* $customDest
+	else 
+		printIt "No additional customizations found: $csapWorkingDir/custom/$runtime"
+	fi ;
 }
 
 
@@ -264,9 +275,8 @@ function addTomcatOracle() {
 		jdbcJar=ojdbc14.jar ;
 		jdbcSource="$ORACLE_HOME/$jdbcJar" ;
 	else
-		printIt ERROR:  Unable to locate jdbc driver in  $ORACLE_HOME, valide /home/ssadmin/.cafEnvOverride 
-		echo ==
-		echo == Start will continue, but functions may be impacted.
+		printIt "WARNING:  Did not locate oracle driver in  $ORACLE_HOME, valide /home/ssadmin/.cafEnvOverride. If not using ORACLE OCI this is ok."
+
 	fi ; 
 	
 	if [ ! -e $customDest/lib/$jdbcJar ] ; then 	
