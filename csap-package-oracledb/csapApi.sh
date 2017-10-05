@@ -178,7 +178,7 @@ function startWrapper() {
 			
 			wipeOracleOffDisk 
 			
-			printIt Info: Deploying $serviceName using $STAGING/warDist/$serviceName.zip
+			printIt Info: Deploying $serviceName using $csapPackageFolder/$serviceName.zip
 
 		
 			printIt "Kicking off oracleMasterInstaller.sh"
