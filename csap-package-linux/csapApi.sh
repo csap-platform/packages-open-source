@@ -22,28 +22,37 @@ function printIt() {
 	echo = 
 }
 
-
+#
+#  legacy installs will not have new variables.
+#
+if [ "$csapSavedFolder" == "" ] ; then
+	
+	csapSavedFolder="$STAGING/saved" ;
+	csapPackageFolder="$STAGING/csap-packages"
+	
+	printIt "setting csapSavedFolder: $csapSavedFolder, and csapPackageFolder: $csapPackageFolder" ;
+	\mkdir -p $csapSavedFolder
+	
+fi;
+	
 function buildAdditionalPackages() {
 	
-	displayHeader buildAdditionalPackages: no additional packages to build
-
-	# most packages are most often managed via a staging host eg. http://csaptools.yourcompany.com/ is used for java
-	# if binaries are built - it may or may not be convenient to upload to maven. 	
-	# mvn deploy:deploy-file -DartifactId=apacheTomcat -Dfile=apache-tomcat-8.0.26.zip ^ \
-	#	-DgroupId=com.yourcompany.xxx -Durl=http://maven.yourcompany.com/artifactory/yourartifaoty ^ \
-	#	-DrepositoryId=yourartifaoty -Dpackaging=zip -DminorVersion=8.0.26
+	displayHeader "no source packages to build"
 
 }
 
-#
-# Use this for getting binary packages - either prebuilt by distributions (tomcat, mongodb, cassandra,etc.)
-#   or built using buildAdditionalPackages() above
-#   Note that CSAP deploy will invoke this on the primary host selected during deployment, and then automatically
-#   - synchronize the packageDir to all the other hosts (via local network copy) for much faster distribution
-#
+packageDir=$csapPackageFolder/$csapName.secondary
 function getAdditionalBinaryPackages() {
 	
-	displayHeader getAdditionalBinaryPackages - skipped , this is an install only package
+	displayHeader "Getting maven"
+	
+	printIt removing $packageDir
+	\rm -rf $packageDir
+	
+	printIt Getting maven binary
+	mkdir -p $packageDir
+	cd $packageDir
+	wget -nv http://$toolsServer/csap/apache-maven-3.3.3-bin.zip
 	
 }
 
@@ -89,27 +98,42 @@ function startWrapper() {
 	
 	updateSudo ;
 		
-	switchToCsapPackages ;
+	migrate-to-csap6 ;
+	
+	install-maven ;
 		
 
 }
 
-function switchToCsapPackages() {
+function install-maven() {
 	
-	newPackageFolder="$STAGING/csap-packages" ;
+	printIt "Installing maven"
 	
-	if [ ! -e "$newPackageFolder" ] ; then 
+	cd $STAGING/apache-maven*
+	unzip -qq -o $packageDir/apache*.zip -d $STAGING
+
+
+}
+
+function migrate-to-csap6() {
+	
+	if [ ! -e "$csapPackageFolder" ] ; then 
 		
-		printIt "Renaming $STAGING/warDist to $newPackageFolder "
-		\mv -v $STAGING/warDist $newPackageFolder
+		printIt "Renaming $STAGING/warDist to $csapPackageFolder "
+		\mv -v $STAGING/warDist $csapPackageFolder
 		
-		ln -s $newPackageFolder $STAGING/warDist
+		#ln -s $newPackageFolder $STAGING/warDist
 		
 	else
-		# in future release
-		# \rm -f $STAGING/warDist
-		printLine "Found: $newPackageFolder , already migrated"	
+		printLine "Found: $csapPackageFolder , already migrated"	
 	fi ;
+	
+	if [ -e "$STAGING/conf.old" ] ; then
+		printIt "Moving $STAGING/conf.old $csapSavedFolder"
+		\mv -v $STAGING/conf.old $csapSavedFolder ;
+		\mv -v $STAGING/conf.previous $csapSavedFolder ;
+	fi;
+	
 }
 
 function updateSudo() {
@@ -178,11 +202,6 @@ function createLogs() {
 
 function deployScripts() {
 	
-	if [ "$csapSavedFolder" == "" ] ; then
-		csapSavedFolder="$STAGING/saved" ;
-		printIt "setting csapSavedFolder: $csapSavedFolder, and creating folder" ;
-		\mkdir -p $csapSavedFolder
-	fi;
 	
 	if [ -e "$STAGING/scripts" ] ; then
 		printIt "moving $STAGING/scripts $csapSavedFolder/scripts"

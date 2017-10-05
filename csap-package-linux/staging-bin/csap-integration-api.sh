@@ -6,14 +6,14 @@ printIt "checking for CSAP package API"
 
 if [ "$skipApiExtract" == "" ] && [ ! -e $csapWorkingDir/scripts/consoleCommands.sh ] &&  [ ! -e $csapWorkingDir/csapApi.sh ] ; then
 	
-	printIt "Did not find api, extracting $STAGING/warDist/$serviceName.zip to $csapWorkingDir"
+	printIt "Did not find api, extracting $csapPackageFolder/$serviceName.zip to $csapWorkingDir"
 	
 	if [ -e $csapWorkingDir/version ] ; then
 		printLine "Removing $csapWorkingDir/version"
 		\rm -rf  $csapWorkingDir/version
 	fi;
 
-	/usr/bin/unzip -o -qq $STAGING/warDist/$serviceName.zip -d $csapWorkingDir
+	/usr/bin/unzip -o -qq $csapPackageFolder/$serviceName.zip -d $csapWorkingDir
 	
 	if [ -e $csapWorkingDir/version ] ; then
 		printIt "Found: $csapWorkingDir/scripts - running native2ascii. Use a different folder name to bypass"

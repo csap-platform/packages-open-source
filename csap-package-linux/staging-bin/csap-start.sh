@@ -72,17 +72,6 @@ if [ "$serviceName" == "CsAgent" ] ; then
 		overRideClean="-cleanType clean" ;
 	fi ;
 	
-	#Hook for maven releases MUST UPDATE M2 in admin.bashrc
-	if [ ! -e $STAGING/apache-maven-3.3.3 ] ; then
-		echo == Maven upgrade in progress $STAGING/apache-maven-3.3.3
-		cd $STAGING
-		\rm -rf apache-maven*
-		wget -nv  http://$toolsServer/csap/apache-maven-3.3.3-bin.zip
-		unzip -q apache*.zip
-		\rm  apache*.zip
-		cd -
-	fi;
-	
 	# isSpawn prevents circular calls with killInstance
 	if [ $isSpawn == "0" ] ; then
 	  # The "-q" option to grep suppresses output.

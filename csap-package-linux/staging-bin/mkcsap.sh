@@ -38,13 +38,13 @@ mkdir -p temp/staging
 cd temp
 
 mkdir staging/build
-mkdir staging/warDist
+mkdir staging/csap-packages
 
-printIt "Including $STAGING/warDist/CsAgent"
-cp -rp $STAGING/warDist/CsAgent* staging/warDist
+printIt "Including $csapPackageFolder/CsAgent"
+cp -rp $csapPackageFolder/CsAgent* staging/csap-packages
 
-printIt "Including $STAGING/warDist/jdk"
-cp -rp $STAGING/warDist/jdk* staging/warDist
+printIt "Including $csapPackageFolder/jdk"
+cp -rp $csapPackageFolder/jdk* staging/csap-packages
 
 if  [ "$includePackages" == "yes" ] ; then
 	printIt "includePackages requested, will run maven dependencies to transfer into maven repo"

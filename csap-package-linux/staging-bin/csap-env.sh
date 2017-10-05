@@ -333,7 +333,7 @@ do
 	  csapHttpPort=8011
 	  csapParams="-DcsapJava8 -Xms256M -Xmx256M -Dorg.csap.needStatefulRestart=yes" ;
       serviceName="CsAgent"; serviceEnv="dev"; lifecycle="dev";  svcRepo="doNotCare"; serviceContext="CsAgent" ; serverRuntime="SpringBoot";
-      csapPackageFolder="$STAGING/warDist";svcSpawn="yes"; ajpSecret="CsAgentAjpSecret" ;csapWorkingDir="$PROCESSING/CsAgent_8011"
+      svcSpawn="yes"; ajpSecret="CsAgentAjpSecret" ;csapWorkingDir="$PROCESSING/CsAgent_8011"
 		csapLogDir="$csapWorkingDir/logs"
  		
       shift 1

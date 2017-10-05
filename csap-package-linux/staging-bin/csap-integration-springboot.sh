@@ -63,7 +63,7 @@ startBoot() {
 		
 		
 		echo extracting jar contents to $springBootClasses 
-		/usr/bin/unzip -qq -o $STAGING/warDist/$serviceName.jar -d $springBootClasses
+		/usr/bin/unzip -qq -o $csapPackageFolder/$serviceName.jar -d $springBootClasses
 		
 		if [ -e "$springBootClasses/BOOT-INF" ]; then
 			echo springboot 1.4 or later detected
@@ -220,8 +220,8 @@ configureLogging() {
 
 configureDeployVersion() {
 	bootVersion="none"
-	if [ -e $STAGING/warDist/$serviceName.jar.txt ] ; then
-		bootVersion=`grep -o '<version>.*<' $STAGING/warDist/$serviceName.jar.txt  | cut -d ">" -f 2 | cut -d "<" -f 1`
+	if [ -e $csapPackageFolder/$serviceName.jar.txt ] ; then
+		bootVersion=`grep -o '<version>.*<' $csapPackageFolder/$serviceName.jar.txt  | cut -d ">" -f 2 | cut -d "<" -f 1`
 	fi;
 
 	printIt == creating $runDir/version : $bootVersion
