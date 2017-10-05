@@ -20,6 +20,12 @@ function printIt() {
 	echo = 
 }
 
+function buildAdditionalPackages() {
+	
+	displayHeader "No Source Packages"
+
+
+}
 
 function deployWrapper() {
 	displayHeader
@@ -27,6 +33,11 @@ function deployWrapper() {
 	
 }
 
+function getAdditionalBinaryPackages() {
+	
+	displayHeader "Binaries download in mquser setup"
+	
+}
 
 function killWrapper() {
 
@@ -71,7 +82,7 @@ function startWrapper() {
 	
 	if [ $isSkip == "0"  ]  ; then
 		
-		printIt  "Deploying $serviceName using $STAGING/warDist/$serviceName.zip"
+		printIt  "Deploying $serviceName using $csapPackageFolder/$serviceName.zip"
 	
 		rm -rf $STAGING/bin/rootDeploy.sh
 		cat scripts/activemqRootInstall.sh >  $STAGING/bin/rootDeploy.sh
