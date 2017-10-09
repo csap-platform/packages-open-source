@@ -25,8 +25,11 @@ function printIt() {
 #
 #  legacy installs will not have new variables.
 #
+
+legacy="false";
 if [ "$csapPackageDependencies" == "" ] ; then
 	
+	legacy="true";
 	csapSavedFolder="$STAGING/saved" ;
 	csapPackageFolder="$STAGING/csap-packages"
 	csapPackageDependencies="$csapPackageFolder/$csapName.secondary" ;
@@ -227,14 +230,17 @@ function deployScripts() {
 	\cp -rp $csapWorkingDir/staging-bin $currentBin
 
 
-	printIt "adding legacy links for previous releases"
-	
-	cd $currentBin
-	ln -s csap-start.sh startInstance.sh
-	ln -s csap-kill.sh killInstance.sh
-	ln -s csap-deploy.sh rebuildAndDeploySvc.sh
-	ln -s admin-restart.sh restartAdmin.sh 
-	ln -s admin-kill-all.sh kills.sh
+
+	if [ "$legacy" == "true" ] ; then 
+		printIt "adding legacy links for previous releases"
+		
+		cd $currentBin
+		ln -s csap-start.sh startInstance.sh
+		ln -s csap-kill.sh killInstance.sh
+		ln -s csap-deploy.sh rebuildAndDeploySvc.sh
+		ln -s admin-restart.sh restartAdmin.sh 
+		ln -s admin-kill-all.sh kills.sh
+	fi ;
 
 	cd $csapWorkingDir
 	

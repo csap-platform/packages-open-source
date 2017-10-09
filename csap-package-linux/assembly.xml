@@ -16,6 +16,15 @@
 			<directory>scripts</directory>
 			<outputDirectory>scripts</outputDirectory>
 		</fileSet>
+		
+		
+		<fileSet>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<directory>installer</directory>
+			<outputDirectory>installer</outputDirectory>
+		</fileSet>
+		
 
 		<fileSet>
 			<fileMode>755</fileMode>

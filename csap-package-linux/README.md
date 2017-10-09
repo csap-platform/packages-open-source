@@ -2,9 +2,17 @@
 # csap-package-linux
 
 ## Provides
-Very simple script- it sources /etc/os-release to update linux version displayed.
-- useful in large deployments where different versions of OSs are deployed
-- logs are also setup to var/log/messages
+Core CSAP linux integration, including:
+
+- staging-bin: linux integration for all management activities. Start, stop, deploy, etc.
+
+- installer: all install scripts for installing on a new host
+
+- docker: reference templates for building docker images
+
+- csapApi.sh: 
+	- version of package will include os version from /etc/os-release
+	- updates staging-bin
 
 ## Configuration
 
