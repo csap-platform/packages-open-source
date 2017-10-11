@@ -52,7 +52,7 @@ function killWrapper() {
 	exit ;
 }
 
-function stopWrapper() { displayHeader "No Stop command" }
+function stopWrapper() { displayHeader "No Stop command" ; }
 
 
 function startWrapper() {
