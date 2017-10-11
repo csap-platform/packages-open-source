@@ -20,6 +20,7 @@ fi
 relNumber="$1"
 includePackages="$2"
 includeMavenRepo="$3"
+toolsServer="$4"
 
 releaseZipFile="csap$relNumber.zip"
 scriptsRel="csapInstall$relNumber.zip"
@@ -40,11 +41,18 @@ cd temp
 mkdir staging/build
 mkdir staging/csap-packages
 
-printIt "Including $csapPackageFolder/CsAgent"
-cp -rp $csapPackageFolder/CsAgent* staging/csap-packages
 
-printIt "Including $csapPackageFolder/jdk"
-cp -rp $csapPackageFolder/jdk* staging/csap-packages
+function addBasePackages() {
+	
+	basePackages="$@" ;
+	for package in $basePackages ; do
+		printIt "Including $csapPackageFolder/$package"
+		cp -rvp $csapPackageFolder/$package* staging/csap-packages
+	done ;
+}
+
+addBasePackages CsAgent jdk Java9
+exit
 
 if  [ "$includePackages" == "yes" ] ; then
 	printIt "includePackages requested, will run maven dependencies to transfer into maven repo"
@@ -128,8 +136,6 @@ du -sh $HOME/temp/staging/*
 
 printIt "Building $releaseZipFile"
 zip -qr $releaseZipFile staging
- 
-toolsServer=csap-prd01.cisco.com
 
 printIt "Transferring $releaseZipFile $toolsServer:web/csap size `ls -l --block-size=M $releaseZipFile |  awk '{print $5}'`"
 scp -o BatchMode=yes -o StrictHostKeyChecking=no $releaseZipFile $toolsServer:web/csap
@@ -138,14 +144,30 @@ printIt "Go to $toolsServer to sync upload to other hosts"
 
 exit
 
-function removeOldFiles {
-	scriptFolder="$1";
-	numDays="+$2" ;
-	dirDepth="10" ;
-	numMatches=`find $scriptFolder -maxdepth $dirDepth -mtime $numDays -type f | wc -l`
-	printIt "CSAP FS Autoclean found $numMatches files older then $numDays days inside $scriptFolder, they are being deleted"
-	find $scriptFolder -maxdepth $dirDepth -mtime $numDays -type f  | xargs \rm -vrf 
-}
 
-printIt "removing $STAGING/mavenRepo files older then 30 days"
-removeOldFiles "$STAGING/mavenRepo" 30
+# add this to your definition folder /scripts
+
+function printIt() { echo; echo; echo =========; echo == $* ; echo =========; }
+
+# change timer to 300 seconds or more
+release="updateThis";
+
+includePackages="no" ; # set to yes to include dev lab artifacts
+includeMavenRepo="no" ; # set to yes to include maven Repo
+toolsServer="csaptools.yourcompany.com"
+
+
+if [ $release != "updateThis" ] ; then
+	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
+	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo
+	
+	includePackages="yes" ; # set to yes to include dev lab artifacts
+	includeMavenRepo="yes" ; # set to yes to include maven Repo
+	release="$release-full"
+	
+	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
+	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $toolsServer
+	
+else
+	printIt update release variable and timer
+fi
