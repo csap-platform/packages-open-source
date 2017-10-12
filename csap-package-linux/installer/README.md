@@ -104,7 +104,7 @@ export localPackages="$HOME/packages"
 cd $HOME; \rm -rf $localPackages
 mkdir -p $localPackages
 cd $localPackages
-wget $releaseRepo/org/csap/csap-package-linux/1.0.6/csap-package-linux-1.0.6.zip
+wget $releaseRepo/org/csap/csap-package-linux/1.0.5/csap-package-linux-1.0.5.zip
 unzip -o -d $HOME/packages $HOME/packages/csap-package-linux*.zip
 
 wget $releaseRepo/org/csap/csap-core-service/6.0.0.8/csap-core-service-6.0.0.8.jar
