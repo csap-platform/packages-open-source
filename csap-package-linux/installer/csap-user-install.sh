@@ -77,23 +77,72 @@ fi;
 # Note that this includes staging in zip
 #\rm -rf csap*.zip
 
-numberPackagesLocal=`ls -l csap*.zip | wc -l`
-localDir="/media/sf_workspace/packages"
-if [ -e $localDir ] ; then 
-	printIt using local copies from $localDir
-	cp $localDir/* .
-elif (( $numberPackagesLocal == 1 )) ; then
-	printIt "Found a local package, using csap*zip";
-else
-	printIt "Getting csap install from $csapPackageUrl"
-	wgetWrapper $csapPackageUrl
-fi;
 
-unzip -q csap*.zip
+function extract-staging-contents() {
 
-printIt "Updating $HOME/.bashrc using $STAGING/bin/admin.bashrc"
-echo  source $STAGING/bin/admin.bashrc >> $HOME/.bashrc
-source ~/.bashrc
+	if [ "$localPackages" != "" ] ; then
+		printIt "Running local setup, copying $localPackages/staging-bin $STAGING/bin"
+		
+		# extract csap linux commands
+		mkdir -p $STAGING
+		\cp -r $localPackages/staging-bin $STAGING/bin
+		
+		PACKAGES=$STAGING/csap-packages
+		mkdir -p $PACKAGES
+		
+		printIt "copying $localPackages/csap-core-service-*.jar $PACKAGES/CsAgent.jar"
+		cp -v $localPackages/csap-core-service-*.jar $PACKAGES/CsAgent.jar
+		cp -v $localPackages/csap-core-service-*.jar $PACKAGES/admin.jar
+		
+		
+		printIt "copying $localPackages/csap-package-linux-*.zip $PACKAGES/linux.zip"
+		cp -v $localPackages/csap-package-linux-*.zip $PACKAGES/linux.zip
+		
+		# getting linux dependencies (maven)
+		mkdir -p $PACKAGES/linux.secondary
+		printIt "copying $localPackages/apache-maven-*-bin.zip $PACKAGES/linux.secondary"
+		cp -v $localPackages/apache-maven-*-bin.zip $PACKAGES/linux.secondary
+
+		printIt "copying $localPackages/csap-package-java-*.zip $PACKAGES/jdk.zip"
+		cp -v $localPackages/csap-package-java-*.zip $PACKAGES/jdk.zip
+		
+		# getting linux dependencies (maven)
+		mkdir -p $PACKAGES/jdk.secondary
+		printIt "copying $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/jdk.secondary"
+		cp -v $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/jdk.secondary
+		
+		
+		
+	else
+		printIt "Running normal install"
+		numberPackagesLocal=`ls -l csap*.zip | wc -l`
+		localDir="/media/sf_workspace/packages"
+		
+		if [ -e $localDir ] ; then 
+			
+			printIt using local copies from $localDir
+			cp $localDir/* .
+			
+		elif (( $numberPackagesLocal == 1 )) ; then
+			
+			printIt "Found a local package, using csap*zip";
+			
+		else
+			
+			printIt "Getting csap install from $csapPackageUrl"
+			wgetWrapper $csapPackageUrl
+			
+		fi;
+		unzip -q csap*.zip
+	fi ;
+	
+	
+	printIt "Updating $HOME/.bashrc using $STAGING/bin/admin.bashrc"
+	echo  source $STAGING/bin/admin.bashrc >> $HOME/.bashrc
+	source ~/.bashrc
+}
+
+extract-staging-contents
 
 javaInstall
 
@@ -158,6 +207,9 @@ else
  	wget http://$cloneHost:8011/CsAgent/os/getConfigZip
  	unzip  -q -o -d $STAGING/conf getConfigZip
 fi ;
+
+printIt "Copying agent jar to admin as they use the same binary "
+cp -v $csapPackageFolder/CsAgent.jar $csapPackageFolder/admin.jar
 
 printIt ssadmin install completed
 

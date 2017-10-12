@@ -455,8 +455,8 @@ function targetInstall() {
 	
 	printIt Running targetInstall to: $targetFs/csap
 	
-	prompt running kills.sh
-	kills.sh
+	prompt running admin-kill-all.sh
+	admin-kill-all.sh
 	
 	
 	prompt stopping $APACHE_HOME/bin/apachectl stop
@@ -509,7 +509,7 @@ function targetInstall() {
 	$installDir/installer/csap-user-install.sh $*
 	
 	source $HOME/.bashrc
-	printIt "to start the agent run: restartAdmin.sh"
+	printIt "to start the agent run: admin-restart.sh"
 	# restartAdmin.sh
 }
 

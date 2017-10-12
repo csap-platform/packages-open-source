@@ -641,6 +641,20 @@ function setDocumentScrollTop(ypos)
 <body class="markdown-body">
 <h1> <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h1> 
 <p>CSAP can be installed on any linux host (VmWare, Openstack, AWS, physical hardware, etc.). The majority of existing hosts are using Centos or Redhat enterprise, so some tweaking in the installation scripts and parsers might be required if other variants are used. New variants are generally very easy to correct - simply open an issue to track if needed.</p> 
+<h3> <a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Quick Start</h3> 
+<p>The csap install script will:</p> 
+<ul> 
+ <li>optionally: update kernel settings with tested values</li> 
+ <li>optionally: (re)create a filesystem for the csap install user (default is csapUser)</li> 
+ <li>download the csap-6.0.0.zip from the specified toolsserver</li> 
+ <li>download/install/start any configured csap-packages in the Application.json</li> 
+</ul> 
+<p>To simplify the learning process, the default Application definition (-clone default) can be used with simple access controls:</p> 
+<div class="highlight highlight-source-shell">
+ <pre>./installer/install.sh -clone default -noPrompt -installCsap 25 -extraDisk /data 25 -skipKernel \
+	-pass yourpass -toolsServer csaptools.youcompany.com
+</pre>
+</div> 
 <h3> <a id="new-application" class="anchor" href="#new-application" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>New Application</h3> 
 <p>Typical install for creating a new application. New applications typically require more setup time as company wide settings (such as LDAP, Maven, etc. providers are defined). Typically a toolshost is created (by ommitting -clone), which then enables all applications in your company to clone the settings:</p> 
 <div class="highlight highlight-source-shell">
@@ -679,10 +693,60 @@ systemctl mask firewalld.service; systemctl disable firewalld.service ;systemctl
 # get installer; if needed: yum -y install unzip wget
 echo == cleaning up previous installs
 cd $HOME; \rm -rf csap*;
-wget http://maven.yourcompany.com/artifactory/your-group/org/csap/csap-core-install/6.0.0/csap-package-linux-6.0.0.zip
-unzip csap*.zip
+wget http://maven.yourcompany.com/artifactory/your-group/org/csap/csap-package-linux/1.0.5/csap-package-linux-1.0.5.zip
+unzip csap-package-linux*.zip
 </code></pre> 
 <h4> <a id="tools-server-or-1st-host" class="anchor" href="#tools-server-or-1st-host" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tools Server or 1st Host</h4> 
+<p>Setting up a tools server is a one time operation - it provides a staging location for future installs and for all the non-maven hosted binaries, including csap-*.zip.</p> 
+<ul> 
+ <li>it is also a CSAP application, and typically co-located with the csap-events-service</li> 
+</ul> 
+<p>Ideally, this will be released as a docker image. Until then steps below are required.</p> 
+<ol> 
+ <li>use maven to build the csap-core-service, csap-package-linux, csap-package-java</li> 
+ <li>on your tools host, copy the core (jar), linux (zip), java(zip) packages to the home folder</li> 
+ <li>Get the latest jdk and maven releases from internet sources - copy them to your home folder</li> 
+ <li>Run the csap-user setup script shown below</li> 
+ <li>Use the CSAP editor at <a href="http://yourhost:8011/CsAgent">http://yourhost:8011/CsAgent</a>. user admin password password</li> 
+</ol> 
+<ul> 
+ <li>you can add/build/install the httpd package, and then put binaries under $HOME/web/csap (for csap), java (jdk releases)</li> 
+ <li>update the host and other variables</li> 
+ <li>installation on other hosts can now use this host as the -toolServer entry</li> 
+</ul> 
+<div class="highlight highlight-source-shell">
+ <pre><span class="pl-c"><span class="pl-c">#</span>csapUser setup: alternately - just copy directly from your desktop</span>
+
+snapRepo=<span class="pl-s"><span class="pl-pds">&quot;</span>http://maven.yourcompany.com/artifactory/group-snapshots<span class="pl-pds">&quot;</span></span>
+releaseRepo=<span class="pl-s"><span class="pl-pds">&quot;</span>http://maven.yourcompany.com/artifactory/group-release<span class="pl-pds">&quot;</span></span>
+toolsRepo=<span class="pl-s"><span class="pl-pds">&quot;</span>http://csaptools.yourcompany.com<span class="pl-pds">&quot;</span></span>
+
+<span class="pl-k">export</span> localPackages=<span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-smi">$HOME</span>/packages<span class="pl-pds">&quot;</span></span>
+<span class="pl-c1">cd</span> <span class="pl-smi">$HOME</span><span class="pl-k">;</span> <span class="pl-cce">\r</span>m -rf <span class="pl-smi">$localPackages</span>
+mkdir -p <span class="pl-smi">$localPackages</span>
+<span class="pl-c1">cd</span> <span class="pl-smi">$localPackages</span>
+wget <span class="pl-smi">$releaseRepo</span>/org/csap/csap-package-linux/1.0.6/csap-package-linux-1.0.5-20171012.190158-5.zip
+unzip -o -d <span class="pl-smi">$HOME</span>/packages <span class="pl-smi">$HOME</span>/packages/csap-package-linux<span class="pl-k">*</span>.zip
+
+wget <span class="pl-smi">$releaseRepo</span>/org/csap/csap-core-service/6.0.0.8/csap-core-service-6.0.0.8-20171012.162137-9.jar
+
+wget <span class="pl-smi">$releaseRepo</span>/org/csap/csap-package-java/1.0.1/csap-package-java-1.0.1.zip
+
+wget <span class="pl-smi">$toolsRepo</span>/java/jdk-8u144-linux-x64.tar.gz
+wget <span class="pl-smi">$toolsRepo</span>/csap/apache-maven-3.3.3-bin.zip
+
+mv -v installer <span class="pl-smi">$HOME</span>
+ls
+
+<span class="pl-c1">cd</span> <span class="pl-smi">$HOME</span>
+
+rm -rf <span class="pl-smi">$HOME</span>/demo<span class="pl-k">;</span> mkdir <span class="pl-smi">$HOME</span>/demo<span class="pl-k">;</span> 
+installer/install.sh -targetFs <span class="pl-smi">$HOME</span>/demo -noPrompt -toolsServer notSpecified
+
+</pre>
+</div> 
+<h3> <a id="getting-your-maven-repo-configured" class="anchor" href="#getting-your-maven-repo-configured" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting your maven repo configured</h3> 
+<p>When settting up your toolsserver, mavenRepoUrl and mavenSettingsUrl can optionally be configured. Alternately - just update the settings directly in Application.json using the CSAP Editor</p> 
 <div class="highlight highlight-source-shell">
  <pre>
 <span class="pl-c"><span class="pl-c">#</span> Simple install sets up a vanilla server eg. a tool host with default application definition</span>
@@ -692,7 +756,6 @@ unzip csap*.zip
  
 <span class="pl-c"><span class="pl-c">#</span> Once a basic application definition has been setup using CSAP Editor, additional hosts are added using clone</span>
 ./installer/install.sh -noPrompt  -installCsap 25  -toolsServer csaptools.yourcompany.com -clone <span class="pl-k">&lt;</span>YOUR_FIRST_VM<span class="pl-k">&gt;</span></pre>
-</div> 
-<h4> <a id="tools-server-or-1st-host-1" class="anchor" href="#tools-server-or-1st-host-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tools Server or 1st Host</h4>
+</div>
 </body>
 </html>
