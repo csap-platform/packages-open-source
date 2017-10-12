@@ -20,7 +20,9 @@ fi
 relNumber="$1"
 includePackages="$2"
 includeMavenRepo="$3"
-toolsServer="$4"
+targetHost="$4"
+
+csapPackageFolder="$STAGING/csap-packages"
 
 releaseZipFile="csap$relNumber.zip"
 scriptsRel="csapInstall$relNumber.zip"
@@ -51,8 +53,9 @@ function addBasePackages() {
 	done ;
 }
 
-addBasePackages CsAgent jdk Java9
-exit
+# note jdk also wildcards to match jdk.secondary
+addBasePackages CsAgent.jar jdk linux CsapSimple.jar CsapTest.jar SimpleServlet.war
+
 
 if  [ "$includePackages" == "yes" ] ; then
 	printIt "includePackages requested, will run maven dependencies to transfer into maven repo"
@@ -96,7 +99,8 @@ if  [ "$includePackages" == "yes" ] ; then
 	#mvn -s $STAGING/conf/propertyOverride/settings.xml $oldDep
 	
 	
-	developmentPackages=`csap.sh -lab https://localhost/admin -api model/mavenArtifacts -script` ;
+	#developmentPackages=`csap.sh -lab http://localhost:8911/admin -api model/mavenArtifacts -script` ;
+	developmentPackages=`csap.sh -lab http://localhost:8011/CsAgent -api model/mavenArtifacts -script` ;
 	printIt "Development Packages: $developmentPackages"
 	for package in $developmentPackages ; do
 		# echo == found package: $package
@@ -137,15 +141,16 @@ du -sh $HOME/temp/staging/*
 printIt "Building $releaseZipFile"
 zip -qr $releaseZipFile staging
 
-printIt "Transferring $releaseZipFile $toolsServer:web/csap size `ls -l --block-size=M $releaseZipFile |  awk '{print $5}'`"
-scp -o BatchMode=yes -o StrictHostKeyChecking=no $releaseZipFile $toolsServer:web/csap
+printIt "Transferring $releaseZipFile $targetHost:web/csap size `ls -l --block-size=M $releaseZipFile |  awk '{print $5}'`"
+scp -o BatchMode=yes -o StrictHostKeyChecking=no $releaseZipFile $targetHost:web/csap
 
-printIt "Go to $toolsServer to sync upload to other hosts"
+printIt "Go to $targetHost to sync upload to other hosts"
 
 exit
 
 
-# add this to your definition folder /scripts
+# add this to your definition folder /scripts/release-csap.sh
+# invoke using csap command runner (/scripts/* will be added to end of templates)
 
 function printIt() { echo; echo; echo =========; echo == $* ; echo =========; }
 
@@ -154,19 +159,19 @@ release="updateThis";
 
 includePackages="no" ; # set to yes to include dev lab artifacts
 includeMavenRepo="no" ; # set to yes to include maven Repo
-toolsServer="csaptools.yourcompany.com"
+targetHost="yourhost"
 
 
 if [ $release != "updateThis" ] ; then
 	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
-	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo
+	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $targetHost
 	
 	includePackages="yes" ; # set to yes to include dev lab artifacts
 	includeMavenRepo="yes" ; # set to yes to include maven Repo
 	release="$release-full"
 	
 	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
-	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $toolsServer
+	$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $targetHost
 	
 else
 	printIt update release variable and timer

@@ -54,8 +54,8 @@ systemctl mask firewalld.service; systemctl disable firewalld.service ;systemctl
 # get installer; if needed: yum -y install unzip wget
 echo == cleaning up previous installs
 cd $HOME; \rm -rf csap*;
-wget http://maven.yourcompany.com/artifactory/your-group/org/csap/csap-core-install/6.0.0/csap-package-linux-6.0.0.zip
-unzip csap*.zip
+wget http://maven.yourcompany.com/artifactory/your-group/org/csap/csap-package-linux/1.0.5/csap-package-linux-1.0.5.zip
+unzip csap-package-linux*.zip
 ```
 
 

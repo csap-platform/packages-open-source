@@ -146,27 +146,6 @@ export csapProcessId="csapProcessId=$svcInstance"
 
 export JAVA_OPTS="$JAVA_OPTS  -D$csapProcessId -DcsapEnvironmentVariables=arePresent"
 
-if [[ "$csapParams" = *csapLegacy* ]] ; then 
-	echo == WARNING - adding legacy parameters. It is strongly recommended to switch to csap env variables
-	export JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.port=$csapJmxPort" ;
-
-	export servicePort="$csapHttpPort"
-	export serviceName="$csapName"
-	export serviceEnv="$csapServiceLife"
-	export loadBalanceUrl="$csapLbUrl"
-
-	export JAVA_OPTS="$JAVA_OPTS  -DredirectOutput=true"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.name=$serviceName"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.host=`hostname`"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.httpport=$csapHttpPort"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.jmxport=$JMX_PORT"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.cluster=$serviceEnv"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.loadBalanceUrl=$csapLbUrl"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcom.cisco.ca.csp.cso.platform.service.life=$lifecycle"
-	export JAVA_OPTS="$JAVA_OPTS  -Dcisco.life=$lifecycle"
-fi ;
-
-
 
 #if [ -e $csapPackageFolder/$serviceName.war.txt ] ; then
 #	ver=`grep -o '<version>.*<' $csapPackageFolder/$serviceName.war.txt  | cut -d ">" -f 2 | cut -d "<" -f 1`

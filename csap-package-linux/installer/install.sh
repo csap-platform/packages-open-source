@@ -46,8 +46,8 @@ if [ "$csapFs" != "0" ] ; then
       
 	printIt Installing csap: csapFs: $csapFs
 
-	prompt Install ssadmin
-	ssadminInstall $origParams
+	prompt Install csapUser
+	csapUserInstall $origParams
 	
 fi ;
 

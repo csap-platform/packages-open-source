@@ -8,13 +8,12 @@ function installCsapJavaPackage() {
 
 	unzip -qo $csapPackageFolder/jdk.zip
 	
-	printIt "Setting java variables"
-	source $csapWorkingDir/scripts/consoleCommands.sh
+	printIt "loading $csapWorkingDir/csapApi.sh"
+	source $csapWorkingDir/csapApi.sh
 	
 	#cd $targetFs/csap
-	printIt current dir: `pwd`
 	cd $csapWorkingDir
-	
+	printIt "Runing start in dir: `pwd`"
 	startWrapper
 
 }
@@ -27,6 +26,9 @@ function javaInstall() {
 	
 	csapName="jdk";
 	csapWorkingDir=`pwd`;
+	
+	printIt "Loading $STAGING/bin/csap-env.sh, with messages hidden"
+	source $STAGING/bin/csap-env.sh >/dev/null
 
 	installCsapJavaPackage
 
@@ -86,32 +88,52 @@ else
 	printIt "Getting csap install from $csapPackageUrl"
 	wgetWrapper $csapPackageUrl
 fi;
-	
+
 unzip -q csap*.zip
-javaInstall
-
-
-
-if [ $mavenSettingsUrl != "default" ] ; then
-	printIt "downloading $STAGING/bin/defaultConf/propertyOverride :  $mavenSettingsUrl"
-	wgetWrapper $mavenSettingsUrl
-	\mv settings.xml $STAGING/bin/defaultConf/propertyOverride
-else 
-	printIt " mavenSettingsUrl was not specified in installer, public spring repo is the default"
-fi
-
-if [ $mavenRepoUrl != "default" ] ; then
-	printIt "updating $STAGING/bin/defaultConf/Application.json with $mavenRepoUrl"
-	sed -i "s=http://repo.spring.io/libs-release=$mavenRepoUrl=g" $STAGING/bin/defaultConf/Application.json
-else 
-	printIt " mavenRepoUrl was not specified in installer, public spring repo is the default"
-fi
 
 printIt "Updating $HOME/.bashrc using $STAGING/bin/admin.bashrc"
 echo  source $STAGING/bin/admin.bashrc >> $HOME/.bashrc
 source ~/.bashrc
 
+javaInstall
+
+
+printIt "Creating $PROCESSING"
 mkdir $PROCESSING
+
+
+function setup-default-application () {
+	
+	
+	applicationFolder="$STAGING/conf";
+	\rm -rf $STAGING/conf;
+	printIt "Creating default cluster using defaults extracted to csapSavedFolder $csapSavedFolder"
+	unzip -o -d $csapSavedFolder $csapPackageFolder/CsAgent.jar BOOT-INF/classes/defaultConf/*
+ 	\cp -rv $csapSavedFolder/BOOT-INF/classes/defaultConf $applicationFolder;
+ 	
+ 	if [ $mavenSettingsUrl != "default" ] ; then
+		printIt "downloading :  $mavenSettingsUrl"
+		wgetWrapper $mavenSettingsUrl
+		\mv settings.xml $applicationFolder/propertyOverride
+	else 
+		printIt " mavenSettingsUrl was not specified in installer, public spring repo is the default"
+	fi
+	
+	if [ $mavenRepoUrl != "default" ] ; then
+		printIt "updating $applicationFolder/Application.json with $mavenRepoUrl"
+		sed -i "s=http://repo.spring.io/libs-release=$mavenRepoUrl=g" $applicationFolder/Application.json
+	else 
+		printIt " mavenRepoUrl was not specified in installer, public spring repo is the default"
+	fi	
+	
+	company=`dnsdomainname`
+	if [ "$company" != "" ] ; then
+		printIt "Replacing yourcompany.com with: $company in $applicationFolder/Application.json" ;
+		sed -i "s=yourcompany.com=$company=g" $applicationFolder/Application.json
+	else
+		 printIt "ERROR: dnsdomainname did not resolve host. Update: $applicationFolder/Application.json by replacing yourcompany.com" 
+	fi ;
+}
 
 cd $HOME
 # staging/bin/buildAndInstall.sh
@@ -126,9 +148,8 @@ if [ "$starterUrl" != "" ] ; then
 
  	
 elif [ $cloneHost == "default" ] ; then
-	printIt Creating default cluster using $STAGING/bin/defaultConf
-	 	\rm -rf $STAGING/conf;
-	 	\cp -r $STAGING/bin/defaultConf $STAGING/conf;
+
+	setup-default-application ;
  	
 else
 	printIt "Getting configuration using host: http://$cloneHost:8011/CsAgent/os/getConfigZip"
