@@ -24,10 +24,10 @@ function printIt() {
 
 
 
-function buildAdditionalPackages() { displayHeader "No Source Packages" }
+function buildAdditionalPackages() { displayHeader "No Source Packages" ; }
 
 
-function getAdditionalBinaryPackages() { displayHeader "No Binary Packages" }
+function getAdditionalBinaryPackages() { displayHeader "No Binary Packages" ; }
 
 
 
@@ -45,7 +45,7 @@ function killWrapper() {
 }
 
 
-function stopWrapper() { displayHeader "no stop command" }
+function stopWrapper() { displayHeader "no stop command" ; }
 
 
 

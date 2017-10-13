@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>pom</packaging>
 	<artifactId>csap-package-linux</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -17,7 +17,7 @@
 		<groupId>org.csap</groupId>
 		<artifactId>csap-starter-parent</artifactId>
 		<version>1.5.7.2</version>
-		<relativePath>../csap-starter/csap-starter-parent</relativePath>
+		<relativePath>../../csap-starter/csap-starter-parent</relativePath>
 		<!-- ../csap-starter/csap-starter-parent</relativePath> for use on desktop -->
 	</parent>
 

@@ -7,6 +7,7 @@ isPrompt="1" ;
 isSmall="0"
 isJava7="1"
 cloneHost="default"
+csapUser="csapUser"
 starterUrl=""
 isMemoryAuth="0"
 allInOnePackage="";
@@ -15,7 +16,7 @@ allInOnePackage="";
 
 CSAP_VOLUME_GROUP="cstg_volume_group" ;
 CSAP_VOLUME_DEVICE="/dev/$CSAP_VOLUME_GROUP" ;
-CSAP_INSTALL_VOLUME="ssadminLV" ;
+CSAP_INSTALL_VOLUME="csapUserLV" ;
 CSAP_EXTRA_VOLUME="extraLV" ;
 CSAP_ACTIVEMQ_VOLUME="activeMqLV" ;
 CSAP_ORACLE_VOLUME="oracleLV" ;
@@ -213,9 +214,15 @@ function processCommandline() {
 	      shift 2
 	    ;;
 	      
-	    -c | -clone )
+	    -clone )
 	      echo "-clone was specified,  Parameter: $2"   ;
 	      cloneHost="$2"
+	      shift 2
+	    ;;
+	    
+	    -csapUser )
+	      echo "-csapUser was specified,  Parameter: $2"   ;
+	      csapUser="$2"
 	      shift 2
 	    ;;
 	      
@@ -261,6 +268,8 @@ echo == Settings: csapFs: $csapFs extraDisk: $extraDisk $extraFs  targetFs: $tar
 echo == fsType: $fsType mqFs: $mqFs  oracleFs: $oracleFs
 echo == isJava7: $isJava7 cloneHost: $cloneHost JAVA_HOME: $JAVA_HOME isPrompt: $isPrompt 
 echo; echo
+
+printIt "CSAP install user: $csapUser. Use -csapUser to modify"
 sleep 2
 
 	
@@ -315,7 +324,7 @@ echo
 
 
 
-doesUserExist() {
+function doesUserExist() {
         /bin/egrep -i "^${1}" /etc/passwd
         if [ $? -eq 0 ]
         then
@@ -326,7 +335,7 @@ doesUserExist() {
 }
 
 
-checkgroup() {
+function checkgroup() {
         /bin/egrep -i "^${1}" /etc/group
         if [ $? -eq 0 ]
         then
@@ -337,7 +346,7 @@ checkgroup() {
 }
 
 
-creategroup() {
+function creategroup() {
         if checkgroup ${1}
         then
                 echo ==  group ${1} exists
@@ -347,7 +356,7 @@ creategroup() {
         fi
 }
 
-createuser() {
+function createuser() {
         if ! doesUserExist ${1}
         then
                 echo ==  user ${1} exists, deleteing
@@ -360,15 +369,15 @@ createuser() {
 
 }
 
-setupHomeDir() {
-	echo == creating .bashrc .profile for user $1
+function setupHomeDir() {
+	printIt "creating $scriptDir/simple.bashrc $scriptDir/simple.bash_profile for user $1"
 	if [ "$1" != "" ] ; then
-		\cp -f $HOME/dist/simple.bashrc /home/$1/.bashrc
+		\cp -f $scriptDir/simple.bashrc /home/$1/.bashrc
 		
 		sed -i "s/CSAP_FD_PARAM/$maxOpenFiles/g" /home/$1/.bashrc
 		sed -i "s/CSAP_THREADS_PARAM/$maxThreads/g" /home/$1/.bashrc
 		
-		\cp -f $HOME/dist/simple.bash_profile /home/$1/.bash_profile
+		\cp -f $scriptDir/simple.bash_profile /home/$1/.bash_profile
 		
 		chown -R $1 /home/$1
 		chgrp -R $1 /home/$1
@@ -379,7 +388,7 @@ setupHomeDir() {
 ##
 ## usage: replaceValueInFile "prop=value" filename
 replaceComment="# csapChanged look at bottom of file "
-replaceValueInFile() {
+function replaceValueInFile() {
 
 
 	propString=$1
@@ -442,12 +451,12 @@ function createDisk() {
 
 
 
-targetInstall() {
+function targetInstall() {
 	
 	printIt Running targetInstall to: $targetFs/csap
 	
-	prompt running kills.sh
-	kills.sh
+	prompt running admin-kill-all.sh
+	admin-kill-all.sh
 	
 	
 	prompt stopping $APACHE_HOME/bin/apachectl stop
@@ -479,8 +488,8 @@ targetInstall() {
 	echo  export CSAP_NO_ROOT=yes >> $HOME/.cafEnv
 	echo  export ORACLE_HOME="$STAGING/../oracle" >> $HOME/.cafEnv
 	
-	\cp -f $installDir/dist/simple.bash_profile $HOME/.bash_profile
-	\cp -f $installDir/dist/simple.bashrc $HOME/.bashrc
+	\cp -f $installDir/installer/simple.bash_profile $HOME/.bash_profile
+	\cp -f $installDir/installer/simple.bashrc $HOME/.bashrc
 	
 	sed -i "s/CSAP_FD_PARAM/$maxOpenFiles/g" $HOME/.bashrc
 	sed -i "s/CSAP_THREADS_PARAM/$maxThreads/g" $HOME/.bashrc
@@ -497,14 +506,14 @@ targetInstall() {
 	\rm -rf  $STAGING
 	cd $targetFs/csap
 	prompt "Continue with CSAP Agent Install"
-	$installDir/dist/ssadminInstall.sh $*
+	$installDir/installer/csap-user-install.sh $*
 	
 	source $HOME/.bashrc
-	printIt "to start the agent run: restartAdmin.sh"
+	printIt "to start the agent run: admin-restart.sh"
 	# restartAdmin.sh
 }
 
-ssadminExtraDisk() {
+function csapExtraDisk() {
 	
 	if [ "$extraDisk" == "" ] ; then 
 		return;
@@ -516,63 +525,61 @@ ssadminExtraDisk() {
 	printIt Creating CSAP data disk	
 	createDisk $CSAP_EXTRA_VOLUME $extraFs
 	
-	printIt  mounting storage into ssadmin 
-	
 	printIt mounting extra storage into $extraDisk 
 	echo $CSAP_VOLUME_DEVICE/$CSAP_EXTRA_VOLUME $extraDisk $fsType defaults 1 2 >> /etc/fstab
 	
 	mkdir -p $extraDisk
 	mount $extraDisk
 	
-	printIt chowning to ssadmin:  $extraDisk 
-	chown -R ssadmin $extraDisk
+	printIt chowning to $csapUser:  $extraDisk 
+	chown -R $csapUser $extraDisk
 }
 
-ssadminInstall() {
-	printIt Running ssadminInstall
+function csapUserInstall() {
+	printIt Running csapUserInstall
 	
-	pkill -9 -u ssadmin
+	pkill -9 -u $csapUser
 	
 	if [ $installDisk == "default" ] ; then
-		printIt Skipping ssadmin partition setup. Install will occur under /home/ssadmin 
-		userdel -r ssadmin; useradd  ssadmin
-		setupHomeDir ssadmin
+		printIt Skipping $csapUser partition setup. Install will occur under /home/$csapUser 
+		userdel -r $csapUser; useradd  $csapUser
+		setupHomeDir $csapUser
 	elif [ $installDisk == "vbox" ] ; then
-		printIt Skipping ssadmin partition setup. Install will occur under /home/ssadmin 
-		userdel -r ssadmin; useradd -G vboxsf ssadmin
-		setupHomeDir ssadmin
+		printIt Skipping $csapUser partition setup. Install will occur under /home/$csapUser 
+		userdel -r $csapUser; useradd -G vboxsf $csapUser
+		setupHomeDir $csapUser
 	else
-		printIt cleaning Up ssadmin
-		sed -ie '/ssadmin/ d' /etc/fstab
+		printIt cleaning Up $csapUser
+		sed -ie "/$csapUser/ d" /etc/fstab
 		
-		printIt Creating ssadmin filesystem	
+		printIt Creating $csapUser filesystem	
 		createDisk $CSAP_INSTALL_VOLUME $csapFs
 		
-		printIt  mounting storage into ssadmin 
-		echo $CSAP_VOLUME_DEVICE/$CSAP_INSTALL_VOLUME /home/ssadmin $fsType defaults 1 2 >> /etc/fstab
+		printIt  mounting storage into $csapUser 
+		echo $CSAP_VOLUME_DEVICE/$CSAP_INSTALL_VOLUME /home/$csapUser $fsType defaults 1 2 >> /etc/fstab
 		
-		\rm -rf /home/ssadmin
-		mkdir -p /home/ssadmin
-		mount /home/ssadmin
-		setupHomeDir ssadmin
+		\rm -rf /home/$csapUser
+		mkdir -p /home/$csapUser
+		mount /home/$csapUser
+		setupHomeDir $csapUser
 	
 	fi;
 	
-	printIt running ssadmin setup
-	\cp -f $HOME/dist/ssadminInstall.sh /home/ssadmin
-	\cp -f $HOME/dist/installFunctions.sh /home/ssadmin
+	printIt running $csapUser setup
+	\cp -f $scriptDir/csap-user-install.sh /home/$csapUser
+	\cp -f $scriptDir/installFunctions.sh /home/$csapUser
 	
 	numberPackagesLocal=`ls -l csap6*.zip | wc -l`
 	if (( $numberPackagesLocal == 1 )) ; then
-		printIt "Found csap*zip - copying to ssadmin";
-		\cp -f csap*zip /home/ssadmin
-		chown ssadmin /home/ssadmin/csap*zip
+		printIt "Found csap*zip - copying to $csapUser";
+		\cp -f csap*zip /home/$csapUser
+		chown $csapUser /home/$csapUser/csap*zip
 	fi ;
 	
 	
-	cp -r /root/version /home/ssadmin
-	#chown -R ssadmin /home/ssadmin/version
-	chown -R ssadmin /home/ssadmin
+	cp -r /root/version /home/$csapUser
+	#chown -R $csapUser /home/$csapUser/version
+	chown -R $csapUser /home/$csapUser
 	
 	if [ $isSkipAgent  == "1" ] ; then
 		printIt skipping agent install
@@ -581,18 +588,18 @@ ssadminInstall() {
 	
 	if [ "$sshCertDir" != "" ] ; then 
 		echo == certs are optional
-		\cp -f -r $HOME/dist/$sshCertDir /home/ssadmin/.ssh
-		chown -R ssadmin /home/ssadmin/.ssh
-		chgrp -R ssadmin /home/ssadmin/.ssh
-		chmod 700 -R  /home/ssadmin/.ssh
+		\cp -f -r $scriptDir/$sshCertDir /home/$csapUser/.ssh
+		chown -R $csapUser /home/$csapUser/.ssh
+		chgrp -R $csapUser /home/$csapUser/.ssh
+		chmod 700 -R  /home/$csapUser/.ssh
 		
 		echo == selinux fix
-		chcon -R unconfined_u:object_r:user_home_t:s0 /home/ssadmin/.ssh/
+		chcon -R unconfined_u:object_r:user_home_t:s0 /home/$csapUser/.ssh/
 	else
 		echo == No certs specified.
 	fi
 	
-	su - ssadmin -c "/home/ssadmin/ssadminInstall.sh $*"
+	su - $csapUser -c "/home/$csapUser/csap-user-install.sh $*"
 	
 	installReturnCode="$?" ;
 	
@@ -603,18 +610,30 @@ ssadminInstall() {
 		exit $installReturnCode ;
 	fi ;
 	
+	if [ "$installReturnCode" == "66" ] ; then
+		printIt "Aborting install" ;
+		exit $installReturnCode ;
+	fi ;
+	
+	if [ -f /etc/init.d/ssadmin ] ; then
+		printIt "Removing legacy start file" ;
+		\rm -vrf /etc/init.d/ssadmin
+	fi ;
+	
 	cd $HOME
-	\cp -f dist/ssadmin.sh /etc/init.d/ssadmin
+	\cp -f $scriptDir/csap-etc-init.sh /etc/init.d/csap
 
-	chmod 755 /etc/init.d/ssadmin
-	chkconfig --add ssadmin
-	chkconfig ssadmin on
+	chmod 755 /etc/init.d/csap
 	
-	ssadminExtraDisk
+	printIt "Running checkconfig for legacy"
+	chkconfig --add csap
+	chkconfig csap on
 	
-	prompt Starting CsAgent
+	csapExtraDisk
+	
+	prompt Starting csap
 
-	service ssadmin start
+	service csap start
 	
 	printIt CSAP install complete. To validate: http://`hostname`:8011/CsAgent
 	
@@ -624,7 +643,7 @@ ssadminInstall() {
 
 
 
-mqInstall() {
+function mqInstall() {
 	printIt Running mqInstall
 	
 	
@@ -651,7 +670,7 @@ mqInstall() {
 
 
 
-oracleInstall() {
+function oracleInstall() {
 	printIt Running oracleInstall
 	
 	rm -rf /etc/ora*	
@@ -695,7 +714,7 @@ oracleInstall() {
 # http://www.oracle-base.com/articles/11g/OracleDB11gR2InstallationOnEnterpriseLinux5.php#OracleValidatedSetup
 # section 2.7 and 2.8 
 #
-configureKernel() {
+function configureKernel() {
 	
 	if [ $skipKernalAndPackageUpdates  == "1" ] ; then
 		printIt skipping kernel install
@@ -710,8 +729,8 @@ configureKernel() {
 	else 
 		 numMatches=`grep csapChanged /etc/sysctl.conf | wc -w`
 		 if [ $numMatches != "0" ] ; then 
-		 	echo hook to ensure a clean /etc/sysctl.conf , copying in from $HOME/dist/sysctl.conf
-		 	cp $HOME/dist/sysctl.conf /etc/sysctl.conf
+		 	echo hook to ensure a clean /etc/sysctl.conf , copying in from $scriptDir/sysctl.conf
+		 	cp $scriptDir/sysctl.conf /etc/sysctl.conf
 		 fi ;
 		 
 		 printIt  /etc/sysctl.conf to /etc/sysctl.conf.orig
@@ -754,7 +773,7 @@ configureKernel() {
 	printIt Updating /etc/security/limits.conf
 	
 	sed -i '/oracle/ d' /etc/security/limits.conf
-	sed -i '/ssadmin/ d' /etc/security/limits.conf
+	sed -i "/$csapUser/ d" /etc/security/limits.conf
 	sed -i '/mquser/ d' /etc/security/limits.conf
 	
 	echo oracle              soft    nproc   2047 >> /etc/security/limits.conf
@@ -763,10 +782,10 @@ configureKernel() {
 	echo oracle              hard    nofile  65536 >> /etc/security/limits.conf
 	echo oracle              soft    stack   10240 >> /etc/security/limits.conf
 	
-	echo ssadmin              soft    nofile  1024 >> /etc/security/limits.conf
-	echo ssadmin              hard    nofile  65536 >> /etc/security/limits.conf
-	echo ssadmin              soft    nproc  2048 >> /etc/security/limits.conf
-	echo ssadmin              hard    nproc  4096 >> /etc/security/limits.conf
+	echo $csapUser              soft    nofile  1024 >> /etc/security/limits.conf
+	echo $csapUser              hard    nofile  65536 >> /etc/security/limits.conf
+	echo $csapUser              soft    nproc  2048 >> /etc/security/limits.conf
+	echo $csapUser              hard    nproc  4096 >> /etc/security/limits.conf
 	
 	echo mquser              soft    nofile  1024 >> /etc/security/limits.conf
 	echo mquser              hard    nofile  65536 >> /etc/security/limits.conf
@@ -781,7 +800,7 @@ configureKernel() {
 
 
 
-oracleCleanup() {
+function oracleCleanup() {
 	#
  	# Oracle is stateful in the OS. 
 	#
@@ -808,10 +827,10 @@ oracleCleanup() {
 
 
 
-partionCleanUp() {
+function partionCleanUp() {
 	
 	if [ $installDisk == "default" ] || [ $installDisk == "vbox" ] ; then
-		printIt Skipping partition setup. Install will occur under /home/ssadmin 
+		printIt Skipping partition setup. Install will occur under /home/$csapUser 
 		return 
 	fi;
 	
@@ -843,7 +862,7 @@ partionCleanUp() {
 	#lvremove -ff $CSAP_VOLUME_DEVICE/$CSAP_EXTRA_VOLUME
 	printIt killing any processes accessing disks
 	fuser -k /home/oracle ; 
-	fuser -k /home/ssadmin ; 
+	fuser -k /home/$csapUser ; 
 	fuser -k /home/mquser ; 
 	if [ "$extraDisk" != "" ] ; then 
 		fuser -k $extraDisk ; 
@@ -851,7 +870,7 @@ partionCleanUp() {
 	
 	
 	printIt Unmounting any disks from previous installs
-	umount -f /home/oracle $extraDisk /home/ssadmin /home/mquser
+	umount -f /home/oracle $extraDisk /home/$csapUser /home/mquser
 	
 	numberOfCsapFileSystems=`df -h | grep $CSAP_VOLUME_GROUP |  wc -l`
 	if (( numberOfCsapFileSystems > 0 )) ; then 
@@ -948,7 +967,7 @@ partionCleanUp() {
 }
 
 
-timeZoneProcessing() {
+function timeZoneProcessing() {
 	
 	prompt Running timeZoneProcessing
 	
@@ -981,7 +1000,7 @@ timeZoneProcessing() {
 	fi
 }
 
-patchOs() {
+function patchOs() {
 	
 	if [ $skipKernalAndPackageUpdates  == "1" ] ; then
 		printIt skipping OS package updates
@@ -997,7 +1016,7 @@ patchOs() {
 	
 	
 	#mv /etc/yum.repos.d/* /tmp
-	#\cp -f $HOME/dist/*.repo /etc/yum.repos.d
+	#\cp -f $scriptDir/*.repo /etc/yum.repos.d
 	#mv /etc/sysconfig/rhn /etc/sysconfig/rhn.bak
 	yum clean all
 	#yum -y  install nc dos2unix  gcc.x86_64  gcc-c++-4.1.2-48.el5.x86_64  vnc-server.x86_64 yum_utils  sysstat.x86_64 openssl097a.x86_64
@@ -1047,19 +1066,19 @@ patchOs() {
 }
 
 
-coreInstall() {
+function coreInstall() {
 
 	printIt Staring coreInstall
 	
 	timeZoneProcessing
 	
-	if ! doesUserExist ssadmin ; then
-		printIt == creating ssadmin user first to ensure uid is consistent on all vms
-		/usr/sbin/adduser ssadmin
-		echo -e "$userPassword\n$userPassword" | passwd ssadmin
+	if ! doesUserExist $csapUser ; then
+		printIt == creating $csapUser user first to ensure uid is consistent on all vms
+		/usr/sbin/adduser $csapUser
+		echo -e "$userPassword\n$userPassword" | passwd $csapUser
 		echo;echo
 	else
-		printIt == ssadmin user already exists: skipping create
+		printIt == $csapUser user already exists: skipping create
 	fi
 	
 
@@ -1070,8 +1089,8 @@ coreInstall() {
 	else 
 		 numMatches=`grep JAVA_HOME /etc/bashrc | wc -w`
 		 if [ $numMatches != "0" ] ; then 
-		 	echo hook to ensure a clean /etc/bashrc , copying in from $HOME/dist/etcbashrc
-		 	cp $HOME/dist/etcbashrc /etc/bashrc
+		 	echo hook to ensure a clean /etc/bashrc , copying in from $scriptDir/etc-bashrc.sh
+		 	cp $scriptDir/etc-bashrc.sh /etc/bashrc
 		 fi ;
 		 
 		echo backing up  /etc/bashrc to /etc/bashrc.orig
@@ -1085,8 +1104,8 @@ coreInstall() {
 	export PATH=$JAVA_HOME/bin:$PATH
 		
 	# get a simple bash profile first into root
-	\cp -f $HOME/dist/simple.bash_profile $HOME/.bash_profile
-	\cp -f $HOME/dist/simple.bashrc $HOME/.bashrc
+	\cp -f $scriptDir/simple.bash_profile $HOME/.bash_profile
+	\cp -f $scriptDir/simple.bashrc $HOME/.bashrc
 	
 	sed -i "s/CSAP_FD_PARAM/4096/g" $HOME/.bashrc
 	sed -i "/CSAP_THREADS_PARAM/d" $HOME/.bashrc
@@ -1099,22 +1118,22 @@ coreInstall() {
 	systemctl stop docker.service
 	systemctl stop docker-latest.service
 	
-	printIt issueing killall on ssadmin
-	killall -u ssadmin
+	printIt issueing killall on $csapUser
+	killall -u $csapUser
 	
 	if [ -e /home/oracle/base/product/11.2*/db_1/bin/lsnrctl ] ; then 
 		/home/oracle/base/product/11.2*/db_1/bin/lsnrctl stop;
 	fi ;
 	
-	printIt issue pkill commands for users orace, ssadmin, mquser
+	printIt issue pkill commands for users orace, $csapUser, mquser
 	
 	if [ `id -u oracle 2>&1 | wc -w` == 1 ] ; then pkill -9 -u oracle ; oracleCleanup ; fi
-	if [ `id -u ssadmin 2>&1 | wc -w` == 1 ] ; then pkill -9 -u ssadmin ; fi
+	if [ `id -u $csapUser 2>&1 | wc -w` == 1 ] ; then pkill -9 -u $csapUser ; fi
 	if [ `id -u mquser 2>&1 | wc -w` == 1 ] ; then pkill -9 -u mquser ; fi
 	
 	printIt sleeping for 5 seconds to let everything die
 	sleep 5 
-	# rm -rf /opt /home/oracle/* /home/ssadmin/* /home/denodo/* /home/mquser/*
+	# rm -rf /opt /home/oracle/* /home/$csapUser/* /home/denodo/* /home/mquser/*
 
 	partionCleanUp
 	
@@ -1129,17 +1148,17 @@ coreInstall() {
 		cp /etc/sudoers /etc/sudoers-csapInstall-$NOW
 		
 		echo; echo ==
-		echo ssadmin ALL=NOPASSWD: /usr/bin/pmap >> /etc/sudoers
-		echo ssadmin ALL=NOPASSWD: /sbin/service >> /etc/sudoers 
-		echo ssadmin ALL=NOPASSWD: /bin/kill >> /etc/sudoers  
-		echo ssadmin ALL=NOPASSWD: /bin/rm >> /etc/sudoers 
-		echo ssadmin ALL=NOPASSWD: /bin/nice >> /etc/sudoers 
-		echo ssadmin ALL=NOPASSWD: /usr/bin/pkill >> /etc/sudoers 
-		echo ssadmin ALL=NOPASSWD: /home/ssadmin/staging/bin/rootDeploy.sh >> /etc/sudoers   
-		echo ssadmin ALL=NOPASSWD: /home/ssadmin/staging/bin/editAsRoot.sh >> /etc/sudoers   
-		echo ssadmin ALL=NOPASSWD: /home/ssadmin/staging/bin/unzipAsRoot.sh >> /etc/sudoers   
-		echo ssadmin ALL=NOPASSWD: /home/ssadmin/staging/bin/scriptRunAsRoot.sh >> /etc/sudoers
-		echo ssadmin ALL=NOPASSWD: /bin/su >> /etc/sudoers
+		echo $csapUser ALL=NOPASSWD: /usr/bin/pmap >> /etc/sudoers
+		echo $csapUser ALL=NOPASSWD: /sbin/service >> /etc/sudoers 
+		echo $csapUser ALL=NOPASSWD: /bin/kill >> /etc/sudoers  
+		echo $csapUser ALL=NOPASSWD: /bin/rm >> /etc/sudoers 
+		echo $csapUser ALL=NOPASSWD: /bin/nice >> /etc/sudoers 
+		echo $csapUser ALL=NOPASSWD: /usr/bin/pkill >> /etc/sudoers 
+		echo $csapUser ALL=NOPASSWD: /home/$csapUser/staging/bin/rootDeploy.sh >> /etc/sudoers   
+		echo $csapUser ALL=NOPASSWD: /home/$csapUser/staging/bin/editAsRoot.sh >> /etc/sudoers   
+		echo $csapUser ALL=NOPASSWD: /home/$csapUser/staging/bin/unzipAsRoot.sh >> /etc/sudoers   
+		echo $csapUser ALL=NOPASSWD: /home/$csapUser/staging/bin/scriptRunAsRoot.sh >> /etc/sudoers
+		echo $csapUser ALL=NOPASSWD: /bin/su >> /etc/sudoers
 		# get rid of tty dependency so that this can be done via webapps
 		sed -i "/requiretty/d"  /etc/sudoers
 	fi ;
