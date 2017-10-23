@@ -114,7 +114,7 @@ function extract-staging-contents() {
 		
 		
 	else
-		printIt "Running normal install"
+		printIt "Running normal install `pwd`"
 		numberPackagesLocal=`ls -l csap*.zip | wc -l`
 		localDir="/media/sf_workspace/packages"
 		
@@ -133,6 +133,7 @@ function extract-staging-contents() {
 			wgetWrapper $csapPackageUrl
 			
 		fi;
+		printIt "Unzipping `pwd` csap*.zip"
 		unzip -q csap*.zip
 	fi ;
 	

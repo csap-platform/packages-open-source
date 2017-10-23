@@ -31,14 +31,16 @@ printIt "Starting build..."
 
 #echo == removing old stuff from repo
 
+buildDir="$HOME/temp";
+
+printIt "Build is being performed in $buildDir"
+
+[ -e $buildDir ] && printIt "removing existing $buildDir..." && rm -r $buildDir ; # delete if exists
 
 
 
-printIt "Copying files to $HOME/temp"
-cd $HOME
-rm -rf temp
-mkdir -p temp/staging
-cd temp
+mkdir -p $buildDir/staging
+cd $buildDir
 
 mkdir staging/build
 mkdir staging/csap-packages
@@ -119,32 +121,38 @@ fi ;
 #set -o verbose #echo on
 
 printIt "copying $STAGING/bin"
-rsync --recursive --perms $STAGING/bin $HOME/temp/staging
+rsync --recursive --perms $STAGING/bin $buildDir/staging
 
 printIt "copying $STAGING/apache-maven"
-rsync --recursive --perms $STAGING/apache-maven* $HOME/temp/staging
+rsync --recursive --perms $STAGING/apache-maven* $buildDir/staging
 
 if  [ "$includeMavenRepo" == "yes" ] ; then
 	printIt "Including maven repo"
-	rsync --recursive --perms $STAGING/mavenRepo  $HOME/temp/staging
+	rsync --recursive --perms $STAGING/mavenRepo  $buildDir/staging
 	
 	printIt 'Removing maven _remote* files from repo - otherwise they are ignored'
-	find $HOME/temp/staging/mavenRepo/ -name _remote* -exec rm -f {} \;
+	find $buildDir/staging/mavenRepo/ -name _remote* -exec rm -f {} \;
 else 
 	printIt "Skipping maven repo"
-	mkdir -p  $HOME/temp/staging/mavenRepo
+	mkdir -p  $buildDir/staging/mavenRepo
 fi;
 
 printIt Build item sizes
-du -sh $HOME/temp/staging/*
+du -sh $buildDir/staging/*
 
-printIt "Building $releaseZipFile"
+printIt "Building `pwd` $releaseZipFile ..."
 zip -qr $releaseZipFile staging
 
-printIt "Transferring $releaseZipFile $targetHost:web/csap size `ls -l --block-size=M $releaseZipFile |  awk '{print $5}'`"
-scp -o BatchMode=yes -o StrictHostKeyChecking=no $releaseZipFile $targetHost:web/csap
+printIt "Completed, size: `ls -lh $releaseZipFile |  awk '{print $5}'`"
 
-printIt "Go to $targetHost to sync upload to other hosts"
+if [ "$targetHost" != "do-not-copy" ] ; then
+	
+	printIt "Transferring $releaseZipFile $targetHost:web/csap size `ls -lh $releaseZipFile |  awk '{print $5}'`"
+	scp -o BatchMode=yes -o StrictHostKeyChecking=no $releaseZipFile $targetHost:web/csap
+	printIt "Go to $targetHost to sync upload to other hosts"
+	
+fi ;
+
 
 exit
 

@@ -1065,6 +1065,19 @@ function patchOs() {
     printIt Complete os patching
 }
 
+function aws_install() {
+	
+	external_host="`curl -s http://169.254.169.254/latest/meta-data/public-hostname`"
+	
+	# redhat
+	hostnamectl set-hostname --static $external_host
+	sed -i "/preserve_hostname/d" /etc/cloud/cloud.cfg
+	echo -e "\npreserve_hostname: true\n" >> /etc/cloud/cloud.cfg
+	# amazon images
+	#sed -i "/HOSTNAME/d" /etc/sysconfig/network
+	#echo "HOSTNAME=`curl http://169.254.169.254/latest/meta-data/public-hostname`"	>> /etc/sysconfig/network
+}
+
 
 function coreInstall() {
 

@@ -32,6 +32,17 @@
 			<directory>staging-bin</directory>
 			<outputDirectory>staging-bin</outputDirectory>
 		</fileSet>
+		
+		
+		<fileSet>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<directory>installer</directory>
+			<includes>
+				<include>build-csap.sh</include>
+			</includes>
+			<outputDirectory>staging-bin</outputDirectory>
+		</fileSet>
 
 		<fileSet>
 			<fileMode>755</fileMode>
