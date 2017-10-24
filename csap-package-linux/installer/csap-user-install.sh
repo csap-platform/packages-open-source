@@ -183,6 +183,18 @@ function setup-default-application () {
 	else
 		 printIt "ERROR: dnsdomainname did not resolve host. Update: $applicationFolder/Application.json by replacing yourcompany.com" 
 	fi ;
+	
+	memoryOnHostInKb=$(free|awk '/^Mem:/{print $2}');
+	memoryOnHostInMb=$((memoryOnHostInKb / 1024 ))
+	printIt memoryOnHostInMb $memoryOnHostInMb
+	
+	if [[ "$memoryOnHostInMb" -lt 1000 ]] ; then 
+		
+		printIt "Host has less then 1GB configured memory: $memoryOnHostInMb Mb. Removing non-essential services from Application.json...."
+		sed -i '/"admin": \[/{N;N;d}' $applicationFolder/Application.json
+		sed -i '/"CsapTest": \[/{N;N;d}' $applicationFolder/Application.json
+		sed -i '/"SimpleServlet": \[/{N;N;d}' $applicationFolder/Application.json
+	fi ;
 }
 
 cd $HOME

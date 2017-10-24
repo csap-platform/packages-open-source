@@ -52,7 +52,7 @@ function root_user_setup() {
 	
 	
 	checkHostName=$(remote_run hostname) ;
-	if [[ $checkHostName == *.amazonawss.com ]] ; then
+	if [[ $checkHostName == *.amazonaws.com ]] ; then
 		printIt "Found amazonaws.com , root setup is already completed" ;
 		return ;
 	fi ;
@@ -130,6 +130,8 @@ function build_csap() {
 	unzip -qq -o "$HOME/Downloads/csap6.0.0.zip" -d "$buildDir"
 	
 	add_local_packages csap-packages/csap-package-java/target/*.zip jdk.zip
+	add_local_packages csap-packages/csap-package-linux/target/*.zip linux.zip
+	add_local_packages csap-core/csap-core-service/target/*.jar CsAgent.jar
 	#exit;
 	
 	$scriptDir/build-csap.sh $release $includePackages $includeMavenRepo $scpCopyHost
@@ -153,7 +155,9 @@ if [ $release != "updateThis" ] ; then
 	
 	root_user_setup
 	
-	copy_install_scripts ;
+	copy_install_scripts 
+	
+	remote_csap_install
 	
 else
 	printIt update release variable and timer
