@@ -35,7 +35,7 @@ function remote_run() {
 }
 
 
-function remote_root_setup() {
+function copy_install_scripts() {
 	printIt "running remote install: $runAlias" ;
 	
 	remote_run ls
@@ -50,6 +50,15 @@ function remote_root_setup() {
 
 function root_user_setup() {
 	
+	
+	checkHostName=$(remote_run hostname) ;
+	if [[ $checkHostName == *.amazonawss.com ]] ; then
+		printIt "Found amazonaws.com , root setup is already completed" ;
+		return ;
+	fi ;
+	
+	printIt "Host name does not contain amazonaws, running root setup"
+	
 	stripRoot="-root"
 	
 	originalAlias="$sshAlias" ;
@@ -63,7 +72,7 @@ function root_user_setup() {
 		
 		# update redhat config
 		remote_run sed -i "/preserve_hostname/d" /etc/cloud/cloud.cfg
-		remote_run echo -e "\npreserve_hostname: true\n" >> /etc/cloud/cloud.cfg
+		remote_run 'echo -e "\npreserve_hostname: true\n" >> /etc/cloud/cloud.cfg'
 		
 		# update hostname
 		remote_run 'external_host=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname) ; hostnamectl set-hostname --static $external_host'
@@ -71,6 +80,9 @@ function root_user_setup() {
 		# reboot
 		
 		remote_run hostname
+		
+		printIt "Installing unzip and wget, the remaining packages and kernel configuration will be installed by csap installer"
+		remote_run yum -y install unzip wget
 
 	else
 		printIt "Skipping root certificate setup - sshAlias does not contain root: $sshAlias" ;
@@ -81,14 +93,15 @@ function remote_csap_install() {
 	remote_run ls -l
 }
 
-root_user_setup
-
-#remote_root_setup ;
 
 
+function remote_csap_install() {
+	remote_run installer/install.sh -noPrompt  -installDisk default  -installCsap default -toolsServer notSpecified ;
+	# -skipKernel
+}
 
 
-exit ;
+#exit ;
 
 function add_local_packages() {
 	
@@ -104,7 +117,8 @@ function add_local_packages() {
 }
 
 
-if [ $release != "updateThis" ] ; then
+function build_csap() {
+
 	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
 	
 	buildDir="$HOME/localbuild"
@@ -118,13 +132,8 @@ if [ $release != "updateThis" ] ; then
 	add_local_packages csap-packages/csap-package-java/target/*.zip jdk.zip
 	#exit;
 	
-	$scriptDir/..build-csap.sh $release $includePackages $includeMavenRepo $scpCopyHost
+	$scriptDir/build-csap.sh $release $includePackages $includeMavenRepo $scpCopyHost
 	
-	printIt "Transferring install and csap zip to aws ..."
-	aws_copy target/*.zip
-	aws_copy $HOME/temp/*.zip
-	
-	printIt "Copy Complete"
 	
 	
 	#$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $scpCopyHost
@@ -135,7 +144,18 @@ if [ $release != "updateThis" ] ; then
 	
 	#printIt Building $release , rember to use ui on csaptools to sync release file to other vm
 	#$STAGING/bin/mkcsap.sh $release $includePackages $includeMavenRepo $scpCopyHost
+
+}
+
+if [ $release != "updateThis" ] ; then
+	
+	build_csap 
+	
+	root_user_setup
+	
+	copy_install_scripts ;
 	
 else
 	printIt update release variable and timer
 fi
+

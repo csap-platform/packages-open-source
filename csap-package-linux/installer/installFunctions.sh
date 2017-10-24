@@ -622,6 +622,7 @@ function csapUserInstall() {
 	
 	cd $HOME
 	\cp -f $scriptDir/csap-etc-init.sh /etc/init.d/csap
+	sed -i "s/CSAP_USER/$csapUser/g" /etc/init.d/csap
 
 	chmod 755 /etc/init.d/csap
 	
@@ -1210,10 +1211,12 @@ function coreInstall() {
 		
 		printIt " WARNING: did not find $HOSTNAME in /etc/hosts. Update manually, and re run install. Sample: "
 		echo echo ip $HOSTNAME $HOSTNAME '>>' /etc/hosts
-		exit
+		#exit
 		#ip=`hostname -i`
 		#echo  $ip $name  $name  >> /etc/hosts
-		#sleep 5 ;
+		
+		printIt "Install will continue in 5 seconds"
+		sleep 5 ;
 		
 	fi
 	
