@@ -1,5 +1,12 @@
 #!/bin/bash 
 
+# params
+sshAlias=${1:-aws1-root} ;
+
+isDoBuild=true ;
+if [[ $2 == "skipBuild" ]]; then isDoBuild=false;  fi ;
+
+
 function printIt() { echo; echo; echo =========; echo == $* ; echo =========; }
 
 # change timer to 300 seconds or more
@@ -15,12 +22,14 @@ scriptName=`basename $0`
 
 gitFolder="$HOME/git";
 
+
+
 # leverages ~/.ssh/config which uses alias to resolve user and host
 #targetHost=${1:-aws1-root} ;
 #targetUser=${2:-root} ;
-sshAlias=${1:-aws1-root} ;
 
-printIt "sshAlias: $sshAlias , ~/.ssh/config: `grep -A 3 $sshAlias ~/.ssh/config`"
+
+printIt "isDoBuild: $isDoBuild, sshAlias: $sshAlias , ~/.ssh/config: `grep -A 3 $sshAlias ~/.ssh/config`"
 
 
 
@@ -112,6 +121,8 @@ function add_local_packages() {
 	ls -l $destination
 	\cp -vf $sourceFolder $destination
 	
+	sed -i "" 's=.*version.*=<version>6.desktop</version>=' "$destination.txt"
+	
 	ls -l $destination
 	# $HOME/git/csap-packages/csap-package-java $STAGING/csap-packages/
 }
@@ -151,7 +162,10 @@ function build_csap() {
 
 if [ $release != "updateThis" ] ; then
 	
-	build_csap 
+	if $isDoBuild ; then
+		build_csap ;
+	fi ;
+	
 	
 	root_user_setup
 	
