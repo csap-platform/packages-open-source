@@ -1,4 +1,7 @@
 #!/bin/bash
+
+
+
 function installCsapJavaPackage() {
 	
 	
@@ -6,7 +9,7 @@ function installCsapJavaPackage() {
 	#\rm -rf JavaDevKitPackage-8u*.zip
 	#wgetWrapper $csapDefaultJdk
 
-	unzip -qo $csapPackageFolder/jdk.zip
+	unzip -qo $csapPackageFolder/Java.zip
 	
 	printIt "loading $csapWorkingDir/csapApi.sh"
 	source $csapWorkingDir/csapApi.sh
@@ -20,11 +23,11 @@ function installCsapJavaPackage() {
 
 # Placed at top for ez updating of package
 function javaInstall() {
-	prompt "Installing CSAP JDK package"
+	prompt "Installing CSAP java package"
 	mkdir -p $STAGING/temp
 	cd $STAGING/temp
 	
-	csapName="jdk";
+	csapName="Java";
 	csapWorkingDir=`pwd`;
 	
 	printIt "Loading $STAGING/bin/csap-env.sh, with messages hidden"
@@ -103,13 +106,13 @@ function extract-staging-contents() {
 		printIt "copying $localPackages/apache-maven-*-bin.zip $PACKAGES/linux.secondary"
 		cp -v $localPackages/apache-maven-*-bin.zip $PACKAGES/linux.secondary
 
-		printIt "copying $localPackages/csap-package-java-*.zip $PACKAGES/jdk.zip"
-		cp -v $localPackages/csap-package-java-*.zip $PACKAGES/jdk.zip
+		printIt "copying $localPackages/csap-package-java-*.zip $PACKAGES/Java.zip"
+		cp -v $localPackages/csap-package-java-*.zip $PACKAGES/Java.zip
 		
 		# getting linux dependencies (maven)
-		mkdir -p $PACKAGES/jdk.secondary
-		printIt "copying $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/jdk.secondary"
-		cp -v $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/jdk.secondary
+		mkdir -p $PACKAGES/Java.secondary
+		printIt "copying $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/Java.secondary"
+		cp -v $localPackages/jdk-*-linux-x64.tar.gz $PACKAGES/Java.secondary
 		
 		
 		

@@ -55,8 +55,8 @@ function addBasePackages() {
 	done ;
 }
 
-# note jdk also wildcards to match jdk.secondary
-addBasePackages CsAgent.jar jdk linux CsapSimple.jar CsapTest.jar SimpleServlet.war
+# note jdk and linkux also wildcards to match jdk.secondary
+addBasePackages CsAgent.jar Java linux CsapSimple.jar CsapTest.jar SimpleServlet.war
 
 
 if  [ "$includePackages" == "yes" ] ; then

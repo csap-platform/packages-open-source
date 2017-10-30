@@ -13,7 +13,7 @@ function printIt() { echo; echo; echo =========; echo == $* ; echo =========; }
 release="6.0.0";
 
 includePackages="no" ; # set to yes to include dev lab artifacts
-includeMavenRepo="no" ; # set to yes to include maven Repo
+includeMavenRepo="yes" ; # set to yes to include maven Repo
 scpCopyHost="do-not-copy"
 
 
@@ -92,19 +92,18 @@ function root_user_setup() {
 		
 		printIt "Installing unzip and wget, the remaining packages and kernel configuration will be installed by csap installer"
 		remote_run yum -y install unzip wget
+		
+		remote_run rm -rf /opt/java/*
 
 	else
 		printIt "Skipping root certificate setup - sshAlias does not contain root: $sshAlias" ;
 	fi;
 }
 
-function remote_csap_install() {
-	remote_run ls -l
-}
-
-
 
 function remote_csap_install() {
+	
+	
 	remote_run installer/install.sh -noPrompt  -installDisk default  -installCsap default -toolsServer notSpecified ;
 	# -skipKernel
 }
@@ -124,23 +123,29 @@ function add_local_packages() {
 	sed -i "" 's=.*version.*=<version>6.desktop</version>=' "$destination.txt"
 	
 	ls -l $destination
-	# $HOME/git/csap-packages/csap-package-java $STAGING/csap-packages/
+	
 }
 
 
-function build_csap() {
+function build_csap_using_local_packages() {
 
-	printIt Building $release , rember to use ui on csaptools to sync release file to other vm
+	printIt Building $release 
 	
 	buildDir="$HOME/localbuild"
 	[ -e $buildDir ] && printIt "removing existing $buildDir..." && rm -r $buildDir ; # delete if exists
 	
 	export STAGING="$buildDir/staging" ;
 	
-	printIt "Extracting contents of base release $HOME/Downloads/csap6.0.0.zip to $buildDir ..."
-	unzip -qq -o "$HOME/Downloads/csap6.0.0.zip" -d "$buildDir"
+	printIt "Extracting contents of base release $HOME/opensource/csap6.0.0.zip to $buildDir ..."
+	unzip -qq -o "$HOME/opensource/csap6.0.0.zip" -d "$buildDir"
 	
-	add_local_packages csap-packages/csap-package-java/target/*.zip jdk.zip
+	printIt "Replacing $STAGING/bin with contents from $gitFolder/csap-packages/csap-package-linux/staging-bin"
+	cp -f $gitFolder/csap-packages/csap-package-linux/staging-bin/* $STAGING/bin
+	
+	printIt "Replacing $STAGING/mavenRepo with contents from $HOME/.m2"
+	cp -rf $HOME/.m2/* $STAGING/mavenRepo
+	
+	add_local_packages csap-packages/csap-package-java/target/*.zip Java.zip
 	add_local_packages csap-packages/csap-package-linux/target/*.zip linux.zip
 	add_local_packages csap-core/csap-core-service/target/*.jar CsAgent.jar
 	#exit;
@@ -163,9 +168,9 @@ function build_csap() {
 if [ $release != "updateThis" ] ; then
 	
 	if $isDoBuild ; then
-		build_csap ;
+		build_csap_using_local_packages ;
 	fi ;
-	
+	#exit ;
 	
 	root_user_setup
 	
