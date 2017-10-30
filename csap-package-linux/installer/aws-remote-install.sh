@@ -49,6 +49,8 @@ function copy_install_scripts() {
 	
 	remote_run ls
 	remote_run rm -rf "*"
+	remote_run rm -rf "/opt/java/*"
+	
 	aws_copy target/*.zip
 	remote_run unzip -qo "csap-package-linux-*.zip"
 	remote_run rm -vrf "*.zip"
@@ -92,9 +94,7 @@ function root_user_setup() {
 		
 		printIt "Installing unzip and wget, the remaining packages and kernel configuration will be installed by csap installer"
 		remote_run yum -y install unzip wget
-		
-		remote_run rm -rf /opt/java/*
-
+	
 	else
 		printIt "Skipping root certificate setup - sshAlias does not contain root: $sshAlias" ;
 	fi;
