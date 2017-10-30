@@ -4,7 +4,11 @@
 # Source function library.
 . /etc/init.d/functions
 
-[ -f /home/ssadmin/staging/bin/csap-kill.sh ] || exit 0
+#
+#  NOTE; CSAP_USER will be updated by install
+#
+
+[ -f /home/CSAP_USER/staging/bin/csap-kill.sh ] || exit 0
 
 RETVAL=0
 
@@ -13,13 +17,13 @@ umask 077
 start() {
        echo -n $"Starting ssadmin: "
        # this will do a autorestart after killing any existing services
-       daemon --user=ssadmin /home/ssadmin/staging/bin/csap-kill.sh -d
+       daemon --user=CSAP_USER /home/CSAP_USER/staging/bin/csap-kill.sh -d
        echo
        return $RETVAL
 }
 stop() {
        echo -n $"Shutting  ssadmin: "
-       daemon --user=ssadmin /home/ssadmin/staging/bin/csap-kill.sh
+       daemon --user=CSAP_USER /home/CSAP_USER/staging/bin/csap-kill.sh
        echo
        return $RETVAL
 }

@@ -176,87 +176,101 @@ if [ -e $SOURCE_CODE_LOCATION ] ; then
 	cd $SOURCE_CODE_LOCATION
 fi ;
 
- 
-if [ -e "$serviceConfig/settings.xml" ] ; then
-	echo;echo;
+function run_the_build() {
 	
-	echo ====================================================================
-	echo Starting maven build using $serviceConfig/settings.xml
-	echo location: $SOURCE_CODE_LOCATION
-	echo command:  mvn $mavenBuildCommand 	
-	echo ====================================================================
-	echo; echo;
+	printIt "starting build in location: $SOURCE_CODE_LOCATION"
+	
+	isJavaBuildOnly=${javaBuildOnly:-false} ;
+	
+	if $isJavaBuildOnly ; then 
+		printIt "javaBuildOnly is true " ;
+		mavenBuildCommand="$mavenBuildCommand install" ; 
+	fi;
+	
 	mBuild="$mavenBuildCommand"
-	if [ "$serverRuntime" == "wrapper" ] &&  [[ "$mavenBuildCommand" == *deploy* ]] ; then  
-		echo ==
-		echo == Stripping off maven deploy param if it is specified, maven deploy will run separately after consoleCommands.deploy
-		echo == This enables Wrappers to customize upload artifacts if necessary
-		echo ==
-		mBuild=`echo $mavenBuildCommand | sed -e "s/deploy/  /g"`
-	fi
-	
-	if [ "$serverRuntime" == "SpringBoot" ] &&  [[ "$mavenBuildCommand" == *deploy* ]] ; then  
-		echo ==
-		echo == Stripping off maven deploy param if it is specified, maven deploy will run separately after consoleCommands.deploy
-		echo == This enables Wrappers to customize upload artifacts if necessary
-		echo ==
-		mBuild=`echo $mavenBuildCommand | sed -e "s/deploy/  /g"`
-	fi
-	
-	
-	mvn -s $serviceConfig/settings.xml $mBuild  2>&1
-else
-	echo Warning: $serviceConfig/settings.xml not found - best practice is to include one in capability/propertyOverride folder 
-	echo Starting maven: mvn -s $STAGING/bin/settings.xml $mavenBuildCommand using default settings.xml
-	echo
-	mvn -s $STAGING/bin/settings.xml $mavenBuildCommand  2>&1
-fi
-
-if [ $? != "0" ] ; then
-	echo
-	echo
-	echo =========== CSSP Abort ===========================
-	echo __ERROR: Maven build exited with none 0 return code
-	echo == Build errors need to be fixed
-	exit 99 ;
-fi ;
-
-if [  "$mavenWarPath" != "" ] ; then 
-	buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.war"
-	if [  $mavenZipDeploy != 0 ] ; then 
-		buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.zip"
-	fi ;
-	if [  $mavenJarDeploy != 0 ] ; then 
-		buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.jar"
+		
+	if [[ "$mavenBuildCommand" == *deploy* ]] ; then 
+		if [ "$serverRuntime" == "wrapper" ] ||  [ "$serverRuntime" == "SpringBoot" ] ; then  
+			printIt "Stripping off maven deploy param if it is specified, maven deploy will run separately after csapApi deploy"
+			mBuild=`echo $mavenBuildCommand | sed -e "s/deploy/  /g"`
+		fi
 	fi ;
 	
-	showIfDebug == buildItem set to $buildItem ;
-	echo " $SCM_USER $mavenArtVersion" > $buildItem.txt ;
-else
-
-	echo "Host Build Only: $SCM_USER $2" > $buildItem.txt
-	showIfDebug checking for versioned service
+	showIfDebug "Build command: $mBuild"
 	
-	eval $suffixTestEval
-	
-	showIfDebug buildItem: $buildItem suffixMatch: $suffixMatch
-	numMatches=`echo $suffixMatch|wc -w`
-	
-	if [ $numMatches != 1 ] ; then
-		echo;echo;echo =========== ERROR ==========
-		echo == rebuildScript requires only a single matching artifact to suffixMatch, but found $numMatches
-		echo == If your maven files is doing dependency copy or other commands that put matching artifacts
-		echo == into target folder, put them into a subfolder.
-		echo == exiting
-		exit; 
-	fi ; 
-	
-	if [ $buildItem != $suffixMatch ]; then
-		showIfDebug copying $suffixMatch to $buildItem for deployment
-		\cp -f $suffixMatch $buildItem
+	mavenSettings="$STAGING/bin/settings.xml" ;
+	if [ -e "$serviceConfig/settings.xml" ] ; then
+		mavenSettings="$serviceConfig/settings.xml"
+	else
+		printIt "Warning: $serviceConfig/settings.xml not found - best practice is to include one in capability/propertyOverride folder"
 	fi
-fi ;
+	printIt "Starting: mvn -s $mavenSettings  $mBuild"
+	mvn -s $mavenSettings  $mBuild  2>&1
+	
+	buildReturnCode="$?" ;
+	if [ $buildReturnCode != "0" ] ; then
+		printIt "Found Error RC from build: $buildReturnCode"
+		echo __ERROR: Maven build exited with none 0 return code
+		exit 99 ;
+	fi ;
 
+	if $isJavaBuildOnly ; then 	
+		if [ -e "csap-starter-parent" ] ; then
+			cd csap-starter-parent ;
+			printIt "running parent build" ;
+			printIt "Starting: mvn -s $mavenSettings  $mBuild"
+			mvn -s $mavenSettings  $mBuild  2>&1
+		fi;
+		printIt "javaBuildOnly is true; exiting" ;
+		exit 95 ;
+	fi;
+}
+
+run_the_build ;
+	
+
+function update_build_version_file() {
+	
+	printIt "Updating buid version file"
+	
+	if [  "$mavenWarPath" != "" ] ; then 
+		buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.war"
+		if [  $mavenZipDeploy != 0 ] ; then 
+			buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.zip"
+		fi ;
+		if [  $mavenJarDeploy != 0 ] ; then 
+			buildItem="$mavenWarPath/$mavenArtName-$mavenArtVersion.jar"
+		fi ;
+		
+		showIfDebug == buildItem set to $buildItem ;
+		echo " $SCM_USER $mavenArtVersion" > $buildItem.txt ;
+	else
+	
+		echo "Host Build Only: $SCM_USER $2" > $buildItem.txt
+		showIfDebug checking for versioned service
+		
+		eval $suffixTestEval
+		
+		showIfDebug buildItem: $buildItem suffixMatch: $suffixMatch
+		numMatches=`ls $suffixMatch | wc -w`
+		
+		if [ $numMatches != 1 ] ; then
+			printIt "ERROR: csap-deploy.sh requires exactly a single matching artifact to be build, but found: $numMatches"
+			printLine "If your maven files is doing dependency copy or other commands that put matching artifacts"
+			printLine "into target folder, put them into a subfolder."
+			printIt "exiting"
+			exit 94; 
+		fi ; 
+		
+		if [ $buildItem != $suffixMatch ]; then
+			showIfDebug copying $suffixMatch to $buildItem for deployment
+			\cp -f $suffixMatch $buildItem
+		fi
+	fi ;
+
+}
+
+update_build_version_file
 
 
 if  [ "$csapPackageFolder" != "" ]  ; then

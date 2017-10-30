@@ -622,6 +622,7 @@ function csapUserInstall() {
 	
 	cd $HOME
 	\cp -f $scriptDir/csap-etc-init.sh /etc/init.d/csap
+	sed -i "s/CSAP_USER/$csapUser/g" /etc/init.d/csap
 
 	chmod 755 /etc/init.d/csap
 	
@@ -1065,6 +1066,19 @@ function patchOs() {
     printIt Complete os patching
 }
 
+function aws_install() {
+	
+	external_host="`curl -s http://169.254.169.254/latest/meta-data/public-hostname`"
+	
+	# redhat
+	hostnamectl set-hostname --static $external_host
+	sed -i "/preserve_hostname/d" /etc/cloud/cloud.cfg
+	echo -e "\npreserve_hostname: true\n" >> /etc/cloud/cloud.cfg
+	# amazon images
+	#sed -i "/HOSTNAME/d" /etc/sysconfig/network
+	#echo "HOSTNAME=`curl http://169.254.169.254/latest/meta-data/public-hostname`"	>> /etc/sysconfig/network
+}
+
 
 function coreInstall() {
 
@@ -1197,10 +1211,12 @@ function coreInstall() {
 		
 		printIt " WARNING: did not find $HOSTNAME in /etc/hosts. Update manually, and re run install. Sample: "
 		echo echo ip $HOSTNAME $HOSTNAME '>>' /etc/hosts
-		exit
+		#exit
 		#ip=`hostname -i`
 		#echo  $ip $name  $name  >> /etc/hosts
-		#sleep 5 ;
+		
+		printIt "Install will continue in 5 seconds"
+		sleep 5 ;
 		
 	fi
 	

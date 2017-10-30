@@ -57,7 +57,7 @@ function installJava8 () {
 	else
 		printIt non root install: $csapWorkingDir version: $minorVersion
 		source $HOME/.cafEnv
-		installPath="$STAGING/../java/" 
+		installPath="$STAGING/../java/$javaFolderName" 
 		if [ "$INSTALL_DIR" != "" ] ; then 
 			echo == using custom location $INSTALL_DIR
 			if [ ! -e $INSTALL_DIR ] ; then 
@@ -97,6 +97,7 @@ function installJava8 () {
 	fi ;
 	
 
+	printIt "Checking if install location already exists: $installPath"
 	
 	if [ -d  $installPath ] ; then
 		

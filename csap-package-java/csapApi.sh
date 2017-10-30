@@ -133,13 +133,13 @@ function startWrapper() {
 	touch "$csapWorkingDir/version/$majorVersion-$minorVersion/empty.txt" 
      
     if [ "$CSAP_NO_ROOT" == "yes" ]; then 	
-    	# hook for running on non root systems
-    	scripts/rootInstall.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
+    		# hook for running on non root systems
+    		scripts/rootInstall.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
 	else
 		rm -rf $STAGING/bin/rootDeploy.sh
 		cat scripts/rootInstall.sh >  $STAGING/bin/rootDeploy.sh
-		chmod 755 /home/ssadmin/staging/bin/rootDeploy.sh
-		sudo /home/ssadmin/staging/bin/rootDeploy.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
+		chmod 755 $STAGING/bin/rootDeploy.sh
+		sudo $STAGING/bin/rootDeploy.sh "$csapWorkingDir" "$minorVersion" "$csapPackageDependencies" "$majorVersion"
 			
 		echo == adding link to: `pwd` from: $csapWorkingDir/JAVA_HOME
 		ln -s /opt/java $csapWorkingDir/JAVA_HOME

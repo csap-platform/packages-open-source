@@ -144,13 +144,13 @@ function updateSudo() {
 	if  [ "$CSAP_NO_ROOT" != "yes" ]; then
 		
 		sudoScript="$csapWorkingDir/scripts/configureSudo.sh" ;
-		printIt "Updating sudo using $sudoScript"
+		printIt "Updating sudo using $sudoScript, updating CSAP_USER with $USER"
 			
 		# rootDeploy is configured by the host installer
 		\rm -rf $STAGING/bin/rootDeploy.sh ;
 		cat $sudoScript > $STAGING/bin/rootDeploy.sh ;
 		chmod 755 $STAGING/bin/rootDeploy.sh ;
-		
+		sed -i "s/CSAP_USER/$USER/g" /etc/init.d/csap
 		sudo $STAGING/bin/rootDeploy.sh 
 		
 	fi ;	
