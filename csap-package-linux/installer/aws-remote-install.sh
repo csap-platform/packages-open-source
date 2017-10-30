@@ -13,7 +13,7 @@ function printIt() { echo; echo; echo =========; echo == $* ; echo =========; }
 release="6.0.0";
 
 includePackages="no" ; # set to yes to include dev lab artifacts
-includeMavenRepo="yes" ; # set to yes to include maven Repo
+includeMavenRepo="no" ; # set to yes to include maven Repo
 scpCopyHost="do-not-copy"
 
 
